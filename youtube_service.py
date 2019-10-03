@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 import re
 import datetime
 import sqlite3
@@ -638,7 +638,7 @@ def htmlGenerator(images,dbname,date,queries,totalVideos,root,totalLikes,
                                          </tr>
                                      </table>
                                      </br>
-                                     <p><center><h2>Динамика за последний год</center></p>
+                                     <p><center><h2>Динамика добавления новых видео за последний год</center></p>
                                      <table width="100%" style="text-align:center">
                                          {% for i in range(length) %}
                                          <tr width="100%" >
