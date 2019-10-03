@@ -25,31 +25,8 @@ conncurs=ys.createDb(dbname,root)
 conn=conncurs[0]
 cursor=conncurs[1]
 
-#создаем три таблицы в БД, после каждого запроса, меняющего содержимое БД - коммит
-cursor.execute("CREATE TABLE query (queryID PRIMARY KEY, queryText text NOT NULL)")
-conn.commit()
-cursor.execute("""CREATE TABLE result 
-               (resultID  NOT NULL, 
-               totalVideoCount  NOT NULL,
-               totalLikeCount  NOT NULL,
-               totalDislikeCount  NOT NULL,
-               totalCommentCount  NOT NULL,
-               totalViewCount  NOT NULL,
-               queryID  NOT NULL,
-               FOREIGN KEY (queryID) REFERENCES query (queryID))""")
-conn.commit()
-cursor.execute("""CREATE TABLE video 
-               (url text NOT NULL,
-                embed text NOT NULL,
-               title text NOT NULL,
-               likeCount  NOT NULL,
-               dislikeCount  NOT NULL,
-               commentCount  NOT NULL,
-               viewCount  NOT NULL,
-               date NULL,
-               queryID  NOT NULL,
-               FOREIGN KEY (queryID) REFERENCES query (queryID))""")
-conn.commit()
+#заполняем БД
+ys.fullfillDb(cursor,conn)
 
 #начинаем вывод импровизированного прогрессбара
 sys.stdout.write("Сбор и анализ данных [ %d"%0+"% ] ")
@@ -168,7 +145,26 @@ def youtube_study_analytics():
         sys.stdout.flush()
         
     
-    #генерируем 4 графика и сохраняем их в соответствующую папку
+    maxLike=ys.getLikeEmbeds(dbname,path,root)
+    maxLikes=maxLike[0]
+    maxLikeEmbeds=maxLike[1]
+    maxDislike=ys.getDislikeEmbeds(dbname,path,root)
+    maxDislikes=maxDislike[0]
+    maxDislikeEmbeds=maxDislike[1]
+    maxComment=ys.getCommentEmbeds(dbname,path,root)
+    maxComments=maxComment[0]
+    maxCommentsEmbeds=maxComment[1]
+    maxView=ys.getViewEmbeds(dbname,path,root)
+    maxViews=maxView[0]
+    maxViewsEmbeds=maxView[1]
+    
+    #images=[path+'\\1.png',path+'\\2.png',path+'\\3.png',path+'\\4.png',
+            #path+'\\5.png',path+'\\6.png',path+'\\7.png',path+'\\8.png']
+    images=[]
+    for i in range(len(queries)+9):
+        images.append(path+'\\'+str(i+1)+'.png')
+    
+    #генерируем кучу графиков и сохраняем их в папку images
     ys.queriesLikesDia(dbname,path,root)
     
     ys.queriesDislikesDia(dbname,path,root)
@@ -177,9 +173,32 @@ def youtube_study_analytics():
     
     ys.queriesViewsDia(dbname,path,root)
     
+    ys.likesPerViewsDia(dbname,path,root)
     
+    ys.dislikesPerViewsDia(dbname,path,root)
     
+    ys.likesPerDislikeViewsDia(dbname,path,root)
     
+    ys.lastHalfYearDia(dbname,path,root)
+    
+    ys.videosPerLastYearDia(dbname,path,root)
+    
+    date=ys.dateConverter(dbname)
+    
+    meanLikesViews=ys.getLikesPerViews(dbname,root)
+    
+    meanDislikesViews=ys.getDislikesPerViews(dbname,root)
+    
+    likesPerDislikes=ys.getLikesPerDislikes(dbname,root)
+    
+    lastHalfYear=ys.getLastHalfYear(dbname,root)
+    
+    #генерируем html-страничку
+    ys.htmlGenerator(images,dbname,date,queries,list(totalVideos.values()),root,
+                     list(totalLikes.values()),list(totalDislikes.values()),list(totalComments.values()),
+                     list(totalViews.values()),maxLikeEmbeds,maxDislikeEmbeds,maxCommentsEmbeds,maxViewsEmbeds,
+                     maxLikes,maxDislikes,maxComments,maxViews,meanLikesViews,meanDislikesViews,likesPerDislikes,
+                     lastHalfYear)
     
     conn.close()
     
