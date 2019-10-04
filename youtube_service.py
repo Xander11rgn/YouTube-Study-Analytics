@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 import re
 import datetime
 import sqlite3
@@ -365,7 +365,7 @@ def lastHalfYearDia(dbname,path,root):
     plt.savefig(path+'\\8.png')
     conn.close()
 
-
+#по полугодиям за последние 3 года
 def videosPerLastYearDia(dbname,path,root):
     conncurs=createDb(dbname,root)
     conn=conncurs[0]
@@ -377,51 +377,98 @@ def videosPerLastYearDia(dbname,path,root):
     for row in data:
         query.append(row[0])
     
-    monthsMain={'1':'Январь','2':'Февраль','3':'Март','4':'Апрель','5':'Май','6':'Июнь','7':'Июль','8':'Август',
-            '9':'Сентябрь','10':'Октябрь','11':'Ноябрь','12':'Декабрь'}
-    monthIndexes=[0,1,2,3,4,5,6,7,8,9,10,11]
-    
     curMonth=datetime.datetime.now().month
-    months=[]
-    for i in range(curMonth,13):
-        months.append(monthsMain[str(i)])
     
-    for i in range(1,curMonth):
-        months.append(monthsMain[str(i)])
-    
-    months[0]=months[0]+'\n\n'+str(datetime.datetime.now().year-1)+' год'
-    if datetime.datetime.now().month==1:
-        months[11]=months[11]+'\n\n'+str(datetime.datetime.now().year-1)+' год'
-    else:
-        months[11]=months[11]+'\n\n'+str(datetime.datetime.now().year)+' год'
+    pg=['1\n\n'+str(datetime.datetime.now().year-3)+' год','2','3','4','5','6\n\n'+str(datetime.datetime.now().year)+' год']
     
     for i in range(len(query)):
-        sql="""SELECT date(v.date) from query q JOIN video v ON q.queryID=v.queryID 
-        WHERE v.date>=date('now','-1 year') AND queryText='"""+query[i]+"""'"""
-        cursor.execute(sql)
-        data=cursor.fetchall()
-        dates=[]
-        for row in data:
-            dates.append(row[0])
-        videosPerMonths=[0 for h in range(12)]
-        for j in range(curMonth-1,12):
-            for k in range(len(dates)):
-                if datetime.datetime.strptime(dates[k],'%Y-%m-%d').month==j+1:
-                    videosPerMonths[j-curMonth+1]=videosPerMonths[j-curMonth+1]+1
-        for j in range(0,curMonth-1):
-            for k in range(len(dates)):
-                if datetime.datetime.strptime(dates[k],'%Y-%m-%d').month==j+1:
-                    videosPerMonths[13-curMonth+j]=videosPerMonths[13-curMonth+j]+1
+        videos=[0 for i in range(6)]
+        for y in range(6):
+            sql="""SELECT date(v.date) from query q JOIN video v ON q.queryID=v.queryID 
+            WHERE date('now','-"""+str(y*6)+ """ months','+1 day')>=v.date AND v.date>=date('now','-"""+str((y+1)*6)+ """ months') AND queryText='"""+query[i]+"""'"""
+            cursor.execute(sql)
+            data=cursor.fetchall()
+            dates=[]
+            for row in data:
+                dates.append(row[0])
+            videosPerHalfYear=[0 for h in range(12)]
+            for j in range(curMonth-1,12):
+                for k in range(len(dates)):
+                    if datetime.datetime.strptime(dates[k],'%Y-%m-%d').month==j+1:
+                        videosPerHalfYear[j-curMonth+1]=videosPerHalfYear[j-curMonth+1]+1
+            for j in range(0,curMonth-1):
+                for k in range(len(dates)):
+                    if datetime.datetime.strptime(dates[k],'%Y-%m-%d').month==j+1:
+                        videosPerHalfYear[13-curMonth+j]=videosPerHalfYear[13-curMonth+j]+1
+            videos[5-y]=sum(videosPerHalfYear)
         df=pd.DataFrame()
-        df['Месяца']=months
-        df['Количество видео']=videosPerMonths
-        ax=df.plot(x='Месяца', y='Количество видео', xticks=monthIndexes, color='green', title='Динамика за последний год по запросу «'+query[i]+'»',legend=True,figsize=(12, 9),grid=True)
-        ax.set(xlabel="Месяца", ylabel="Количество видео")
+        df['Полугодия']=pg
+        df['Количество видео']=videos
+        ax=df.plot(x='Полугодия', kind='bar',y='Количество видео', color='green', title='Динамика добавления видео по полугодиям за последние 3 года по запросу «'+query[i]+'»',legend=True,figsize=(12, 9),grid=True)
+        ax.set(xlabel="Полугодия", ylabel="Количество видео")
         formatter = matplotlib.ticker.MaxNLocator(integer=True)
         ax.yaxis.set_major_locator (formatter)
         plt.tight_layout()
         plt.savefig(path+'\\'+str(i+9)+'.png')
     conn.close()
+
+#по месяцам за последний год
+#def videosPerLastYearDia(dbname,path,root):
+#    conncurs=createDb(dbname,root)
+#    conn=conncurs[0]
+#    cursor=conncurs[1]
+#    sql="""SELECT queryText from query"""
+#    cursor.execute(sql)
+#    data=cursor.fetchall()
+#    query=[]
+#    for row in data:
+#        query.append(row[0])
+#    
+#    monthsMain={'1':'Январь','2':'Февраль','3':'Март','4':'Апрель','5':'Май','6':'Июнь','7':'Июль','8':'Август',
+#            '9':'Сентябрь','10':'Октябрь','11':'Ноябрь','12':'Декабрь'}
+#    monthIndexes=[0,1,2,3,4,5,6,7,8,9,10,11]
+#    
+#    curMonth=datetime.datetime.now().month
+#    months=[]
+#    for i in range(curMonth,13):
+#        months.append(monthsMain[str(i)])
+#    
+#    for i in range(1,curMonth):
+#        months.append(monthsMain[str(i)])
+#    
+#    months[0]=months[0]+'\n\n'+str(datetime.datetime.now().year-1)+' год'
+#    if datetime.datetime.now().month==1:
+#        months[11]=months[11]+'\n\n'+str(datetime.datetime.now().year-1)+' год'
+#    else:
+#        months[11]=months[11]+'\n\n'+str(datetime.datetime.now().year)+' год'
+#    
+#    for i in range(len(query)):
+#        sql="""SELECT date(v.date) from query q JOIN video v ON q.queryID=v.queryID 
+#        WHERE v.date>=date('now','-3 year','+1 day') AND queryText='"""+query[i]+"""'"""
+#        cursor.execute(sql)
+#        data=cursor.fetchall()
+#        dates=[]
+#        for row in data:
+#            dates.append(row[0])
+#        videosPerMonths=[0 for h in range(12)]
+#        for j in range(curMonth-1,12):
+#            for k in range(len(dates)):
+#                if datetime.datetime.strptime(dates[k],'%Y-%m-%d').month==j+1:
+#                    videosPerMonths[j-curMonth+1]=videosPerMonths[j-curMonth+1]+1
+#        for j in range(0,curMonth-1):
+#            for k in range(len(dates)):
+#                if datetime.datetime.strptime(dates[k],'%Y-%m-%d').month==j+1:
+#                    videosPerMonths[13-curMonth+j]=videosPerMonths[13-curMonth+j]+1
+#        df=pd.DataFrame()
+#        df['Месяца']=months
+#        df['Количество видео']=videosPerMonths
+#        ax=df.plot(x='Месяца',kind='bar', y='Количество видео', xticks=monthIndexes, color='green', title='Динамика за последний год по запросу «'+query[i]+'»',legend=True,figsize=(12, 9),grid=True)
+#        ax.set(xlabel="Месяца", ylabel="Количество видео")
+#        formatter = matplotlib.ticker.MaxNLocator(integer=True)
+#        ax.yaxis.set_major_locator (formatter)
+#        plt.tight_layout()
+#        plt.savefig(path+'\\'+str(i+9)+'.png')
+#    conn.close()
 
 
 

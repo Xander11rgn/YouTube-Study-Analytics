@@ -7,7 +7,9 @@ import os
 DEVELOPER_KEYS=["AIzaSyDJR3-A7UnPK6ZVPmYPvUfc35iEjb9TqFk",   #Я
                 "AIzaSyBCNojrr4-HL23k0sGMMg7OhlDFOZvyTX4",   #Костя
                 "AIzaSyDPs5drcMfvcRrqqkUrhPgnI647438WsdY",   #Я
-                "AIzaSyA506GzoveUGAvXUib6Y8KTXAJxa4XMdLA"]   #Костя
+                "AIzaSyA506GzoveUGAvXUib6Y8KTXAJxa4XMdLA",   #Костя
+                "AIzaSyD-o3TMJ0nD--tmSmKp3t1-r88mI6Bc72c",   #Я
+                "AIzaSyCzKUiwJ7WbbsQqJD7H_QAWNaUB0zzPcoA"]   #Я
 YOUTUBE_API_SERVICE_NAME = "youtube"
 YOUTUBE_API_VERSION = "v3"
 
@@ -54,7 +56,7 @@ def youtube_study_analytics():
         for h in range(len(DEVELOPER_KEYS)):
                 try:
                     youtube = discovery.build(YOUTUBE_API_SERVICE_NAME, YOUTUBE_API_VERSION, developerKey = DEVELOPER_KEYS[h]) 
-                    results = youtube.search().list(q = query, part = "id, snippet", maxResults = 50).execute()
+                    results = youtube.search().list(q = query, part = "id, snippet", maxResults = 50, order="date").execute()
                     break;
                 except:
                     continue
@@ -62,14 +64,15 @@ def youtube_study_analytics():
         #выцепляем общее кол-во видео по даннной тематике
         totalVideos[query]=results['pageInfo']['totalResults']
         
-        #nextPageToken=results['nextPageToken']
+        #получаем токен следующей страницы поиска
+        nextPageToken=results['nextPageToken']
         #первичная инициализация четырех статистических переменных
         likes,dislikes,comments,views=[0 for y in range(4)]
         
         #цикл для сбора всех идентификаторов видео
         #и отсеивание лишнего, поскольку в поиске кроме видео есть плейлисты и каналы
         #for k in range(11):
-        for k in range(1):
+        for k in range(2):
             searchResults=results.get("items", [])
             videoIds=[]
             for result in searchResults:
@@ -108,22 +111,25 @@ def youtube_study_analytics():
                         c=int(videoResult['statistics']['commentCount'])
                         comments=comments+c
                     v=int(videoResult['statistics']['viewCount'])
-                    views=views+v
+                    if v==0 or v==None:
+                        views=views+1
+                    else:
+                        views=views+v
                 #вносим изменения в таблицу, коммитим
                 cursor.execute("INSERT INTO video VALUES (?,?,?,?,?,?,?,?,?)",(url,embed,t,l,d,c,v,date,i+1))
                 conn.commit()
                 
             
             
-            
-            '''for j in range(len(DEVELOPER_KEYS)):
+            #читаем следующую страницу поиска
+            for j in range(len(DEVELOPER_KEYS)):
                 try:
-                    youtube = build(YOUTUBE_API_SERVICE_NAME, YOUTUBE_API_VERSION, developerKey = DEVELOPER_KEYS[j]) 
-                    results=youtube.search().list(q = query, part = "id, snippet", pageToken=nextPageToken, maxResults = 2).execute()
+                    youtube = discovery.build(YOUTUBE_API_SERVICE_NAME, YOUTUBE_API_VERSION, developerKey = DEVELOPER_KEYS[j]) 
+                    results=youtube.search().list(q = query, part = "id, snippet", pageToken=nextPageToken, maxResults = 50, order="date").execute()
                     break
                 except:
                     continue
-            if 'nextPageToken' in results:
+            '''if 'nextPageToken' in results:
                 nextPageToken=results['nextPageToken']
             else:
                 break'''
