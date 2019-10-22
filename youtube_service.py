@@ -88,10 +88,10 @@ def queriesLikesDia(dbname,path,root):
     df=pd.DataFrame()
     df['Запросы']=query
     df['Лайки']=likes
+    
     ax=df.plot(x='Запросы',kind='bar', color='tomato', title='Запросы по убыванию лайков',legend=True,figsize=(len(query), 8),grid=True)
     ax.set(xlabel="Запросы", ylabel="Лайки")
-    plt.tight_layout()
-    plt.savefig(path+'\\1.png')
+    plt.savefig(path+'\\1.png',bbox_inches='tight')
     conn.close()
 
 
@@ -113,8 +113,7 @@ def queriesDislikesDia(dbname,path,root):
     df['Дизлайки']=dislikes
     ax=df.plot(x='Запросы',kind='bar', color='deepskyblue', title='Запросы по убыванию дизлайков',legend=True,figsize=(len(query), 8),grid=True)
     ax.set(xlabel="Запросы", ylabel="Дизлайки")
-    plt.tight_layout()
-    plt.savefig(path+'\\2.png')
+    plt.savefig(path+'\\2.png',bbox_inches='tight')
     conn.close()
 
 
@@ -136,8 +135,7 @@ def queriesCommentsDia(dbname,path,root):
     df['Комментарии']=comments
     ax=df.plot(x='Запросы',kind='bar', color='magenta', title='Запросы по убыванию комментариев',legend=True,figsize=(len(query), 8),grid=True)
     ax.set(xlabel="Запросы", ylabel="Комментарии")
-    plt.tight_layout()
-    plt.savefig(path+'\\3.png')
+    plt.savefig(path+'\\3.png',bbox_inches='tight')
     conn.close()
 
 
@@ -161,8 +159,7 @@ def queriesViewsDia(dbname,path,root):
     df['Просмотры']=views
     ax=df.plot(x='Запросы',kind='bar',color='gold', title='Запросы по убыванию просмотров',legend=True,figsize=(len(query), 8),grid=True)
     ax.set(xlabel="Запросы", ylabel="Просмотры")
-    plt.tight_layout()
-    plt.savefig(path+'\\4.png')
+    plt.savefig(path+'\\4.png',bbox_inches='tight')
     conn.close()
 
 
@@ -183,7 +180,10 @@ def getLikesPerViews(dbname,root):
     
     likePerView=[]
     for i in range(len(query)):
-        likePerView.append(round(likes[i]/views[i],5))
+        if views[i]==0:
+            likePerView.append('YouTube выдал некорректные данные по данному запросу')
+        else:
+            likePerView.append(round(likes[i]/views[i],5))
     conn.close()
     return(likePerView)
 
@@ -204,7 +204,12 @@ def likesPerViewsDia(dbname,path,root):
     
     likePerView=[]
     for i in range(len(query)):
-        likePerView.append(likes[i]/views[i])
+        if views[i]==0:
+            #likePerView.append(0)
+            query.remove(query[i])
+            continue
+        else:
+            likePerView.append(likes[i]/views[i])
     
     
     df=pd.DataFrame()
@@ -213,8 +218,7 @@ def likesPerViewsDia(dbname,path,root):
     df=df.sort_values(['Лайк/Просмотр'],ascending=False)
     ax=df.plot(x='Запросы',kind='bar', color='red', title='Среднее количество лайков на один просмотр',legend=True,figsize=(len(query), 8),grid=True)
     ax.set(xlabel="Запросы", ylabel="Лайк на просмотр")
-    plt.tight_layout()
-    plt.savefig(path+'\\5.png')
+    plt.savefig(path+'\\5.png',bbox_inches='tight')
     conn.close()
 
 
@@ -236,7 +240,10 @@ def getDislikesPerViews(dbname,root):
     
     dislikePerView=[]
     for i in range(len(query)):
-        dislikePerView.append(round(dislikes[i]/views[i],5))
+        if views[i]==0:
+            dislikePerView.append('YouTube выдал некорректные данные по данному запросу')
+        else:
+            dislikePerView.append(round(dislikes[i]/views[i],5))
     conn.close()
     return(dislikePerView)
 
@@ -257,7 +264,12 @@ def dislikesPerViewsDia(dbname,path,root):
     
     dislikePerView=[]
     for i in range(len(query)):
-        dislikePerView.append(dislikes[i]/views[i])
+        if views[i]==0:
+            query.remove(query[i])
+            continue
+            #dislikePerView.append(0)
+        else:
+            dislikePerView.append(dislikes[i]/views[i])
     
     
     df=pd.DataFrame()
@@ -266,8 +278,7 @@ def dislikesPerViewsDia(dbname,path,root):
     df=df.sort_values(['Дизлайк/Просмотр'],ascending=False)
     ax=df.plot(x='Запросы',kind='bar', color='purple', title='Среднее количество дизлайков на один просмотр',legend=True,figsize=(len(query), 8),grid=True)
     ax.set(xlabel="Запросы", ylabel="Дизлайк на просмотр")
-    plt.tight_layout()
-    plt.savefig(path+'\\6.png')
+    plt.savefig(path+'\\6.png',bbox_inches='tight')
     conn.close()
 
 
@@ -289,7 +300,10 @@ def getLikesPerDislikes(dbname,root):
     
     likePerDislike=[]
     for i in range(len(query)):
-        likePerDislike.append(round(likes[i]/dislikes[i],1))
+        if dislikes[i]==0:
+            likePerDislike.append('YouTube выдал некорректные данные по данному запросу')
+        else:
+            likePerDislike.append(round(likes[i]/dislikes[i],1))
     conn.close()
     return(likePerDislike)
 
@@ -311,7 +325,12 @@ def likesPerDislikeViewsDia(dbname,path,root):
     
     likePerDislike=[]
     for i in range(len(query)):
-        likePerDislike.append(likes[i]/dislikes[i])
+        if dislikes[i]==0:
+#            likePerDislike.append(0)
+            query.remove(query[i])
+            continue
+        else:
+            likePerDislike.append(likes[i]/dislikes[i])
     
     
     df=pd.DataFrame()
@@ -320,8 +339,7 @@ def likesPerDislikeViewsDia(dbname,path,root):
     df=df.sort_values(['Лайк/Дизлайк'],ascending=False)
     ax=df.plot(x='Запросы',kind='bar', color='grey', title='Отношение лайков к дизлайкам',legend=True,figsize=(len(query), 8),grid=True)
     ax.set(xlabel="Запросы", ylabel="Лайк/Дизлайк")
-    plt.tight_layout()
-    plt.savefig(path+'\\7.png')
+    plt.savefig(path+'\\7.png',bbox_inches='tight')
     conn.close()
 
 
@@ -329,15 +347,27 @@ def getLastHalfYear(dbname,root):
     conncurs=createDb(dbname,root)
     conn=conncurs[0]
     cursor=conncurs[1]
+    sql="""SELECT queryText from query"""
+    cursor.execute(sql)
+    data=cursor.fetchall()
+    query=[]
+    for row in data:
+        query.append(row[0])
+    videoCount=[0 for i in range(len(query))]
     sql="""SELECT q.queryID, queryText, COUNT(v.date) from query q JOIN video v ON q.queryID=v.queryID 
         WHERE v.date>=date('now','-6 months') GROUP BY queryText ORDER BY q.queryID"""
     cursor.execute(sql)
     data=cursor.fetchall()
-    query=[]
-    videoCount=[]
+    queryBase=[]
+    videoCountBase=[]
     for row in data:
-        query.append(row[1])
-        videoCount.append(row[2])
+        queryBase.append(row[1])
+        videoCountBase.append(row[2])
+    for i in range(len(query)):
+        for j in range(len(queryBase)):
+            if query[i]==queryBase[j]:
+                videoCount[i]=videoCountBase[j]
+                break
     conn.close()
     return(videoCount)
 
@@ -361,8 +391,7 @@ def lastHalfYearDia(dbname,path,root):
     df=df.sort_values(['Количество видео'],ascending=False)
     ax=df.plot(x='Запросы',kind='bar', color='orange', title='Количество видео за последние полгода',legend=True,figsize=(len(query), 8),grid=True)
     ax.set(xlabel="Запросы", ylabel="Количество видео")
-    plt.tight_layout()
-    plt.savefig(path+'\\8.png')
+    plt.savefig(path+'\\8.png',bbox_inches='tight')
     conn.close()
 
 #по полугодиям за последние 3 года
@@ -381,6 +410,8 @@ def videosPerLastYearDia(dbname,path,root):
     
     pg=['1\n\n'+str(datetime.datetime.now().year-3)+' год','2','3','4','5','6\n\n'+str(datetime.datetime.now().year)+' год']
     
+    
+    n=0
     for i in range(len(query)):
         videos=[0 for i in range(6)]
         for y in range(6):
@@ -401,6 +432,8 @@ def videosPerLastYearDia(dbname,path,root):
                     if datetime.datetime.strptime(dates[k],'%Y-%m-%d').month==j+1:
                         videosPerHalfYear[13-curMonth+j]=videosPerHalfYear[13-curMonth+j]+1
             videos[5-y]=sum(videosPerHalfYear)
+        if sum(videos)==0:
+            continue
         df=pd.DataFrame()
         df['Полугодия']=pg
         df['Количество видео']=videos
@@ -408,8 +441,8 @@ def videosPerLastYearDia(dbname,path,root):
         ax.set(xlabel="Полугодия", ylabel="Количество видео")
         formatter = matplotlib.ticker.MaxNLocator(integer=True)
         ax.yaxis.set_major_locator (formatter)
-        plt.tight_layout()
-        plt.savefig(path+'\\'+str(i+9)+'.png')
+        plt.savefig(path+'\\'+str(n+9)+'.png',bbox_inches='tight')
+        n=n+1
     conn.close()
 
 #по месяцам за последний год
@@ -493,14 +526,32 @@ def getLikeEmbeds(dbname,path,root):
     conncurs=createDb(dbname,root)
     conn=conncurs[0]
     cursor=conncurs[1]
+    sql="""SELECT queryID from query"""
+    cursor.execute(sql)
+    data=cursor.fetchall()
+    queryID=[]
+    for row in data:
+        queryID.append(row[0])
+    likes=[0 for i in range(len(queryID))]
+    likesEmbeds=['' for i in range(len(queryID))]
     sql="SELECT q.queryID,MAX(likeCount), embed FROM query q JOIN result r ON q.queryID=r.queryID JOIN video v ON r.queryID=v.queryID GROUP BY q.queryID"
     cursor.execute(sql)
     data=cursor.fetchall()
-    likes=[]
-    likesEmbeds=[]
+    queryIDBase=[]
+    likesBase=[]
+    likesEmbedsBase=[]
     for row in data:
-        likes.append(row[1])
-        likesEmbeds.append(row[2])
+        queryIDBase.append(row[0])
+        likesBase.append(row[1])
+        likesEmbedsBase.append(row[2])
+    for i in range(len(queryID)):
+        for j in range(len(queryIDBase)):
+            if queryID[i]==queryIDBase[j]:
+                likes[i]=likesBase[j]
+                likesEmbeds[i]=likesEmbedsBase[j]
+                break
+    likes=[x for x in likes if x!=0]
+    likesEmbeds=[x for x in likesEmbeds if x!='']
     conn.close()
     return(likes,likesEmbeds)
 
@@ -509,14 +560,32 @@ def getDislikeEmbeds(dbname,path,root):
     conncurs=createDb(dbname,root)
     conn=conncurs[0]
     cursor=conncurs[1]
+    sql="""SELECT queryID from query"""
+    cursor.execute(sql)
+    data=cursor.fetchall()
+    queryID=[]
+    for row in data:
+        queryID.append(row[0])
+    dislikes=[0 for i in range(len(queryID))]
+    dislikesEmbeds=['' for i in range(len(queryID))]
     sql="SELECT q.queryID,MAX(dislikeCount), embed FROM query q JOIN result r ON q.queryID=r.queryID JOIN video v ON r.queryID=v.queryID GROUP BY q.queryID"
     cursor.execute(sql)
     data=cursor.fetchall()
-    dislikes=[]
-    dislikesEmbeds=[]
+    queryIDBase=[]
+    dislikesBase=[]
+    dislikesEmbedsBase=[]
     for row in data:
-        dislikes.append(row[1])
-        dislikesEmbeds.append(row[2])
+        queryIDBase.append(row[0])
+        dislikesBase.append(row[1])
+        dislikesEmbedsBase.append(row[2])
+    for i in range(len(queryID)):
+        for j in range(len(queryIDBase)):
+            if queryID[i]==queryIDBase[j]:
+                dislikes[i]=dislikesBase[j]
+                dislikesEmbeds[i]=dislikesEmbedsBase[j]
+                break
+    dislikes=[x for x in dislikes if x!=0]
+    dislikesEmbeds=[x for x in dislikesEmbeds if x!='']
     conn.close()
     return(dislikes,dislikesEmbeds)
 
@@ -525,14 +594,32 @@ def getCommentEmbeds(dbname,path,root):
     conncurs=createDb(dbname,root)
     conn=conncurs[0]
     cursor=conncurs[1]
+    sql="""SELECT queryID from query"""
+    cursor.execute(sql)
+    data=cursor.fetchall()
+    queryID=[]
+    for row in data:
+        queryID.append(row[0])
+    comments=[0 for i in range(len(queryID))]
+    commentEmbeds=['' for i in range(len(queryID))]
     sql="SELECT q.queryID,MAX(commentCount), embed FROM query q JOIN result r ON q.queryID=r.queryID JOIN video v ON r.queryID=v.queryID GROUP BY q.queryID"
     cursor.execute(sql)
     data=cursor.fetchall()
-    comments=[]
-    commentEmbeds=[]
+    queryIDBase=[]
+    commentsBase=[]
+    commentEmbedsBase=[]
     for row in data:
-        comments.append(row[1])
-        commentEmbeds.append(row[2])
+        queryIDBase.append(row[0])
+        commentsBase.append(row[1])
+        commentEmbedsBase.append(row[2])
+    for i in range(len(queryID)):
+        for j in range(len(queryIDBase)):
+            if queryID[i]==queryIDBase[j]:
+                comments[i]=commentsBase[j]
+                commentEmbeds[i]=commentEmbedsBase[j]
+                break
+    comments=[x for x in comments if x!=0]
+    commentEmbeds=[x for x in commentEmbeds if x!='']
     conn.close()
     return(comments,commentEmbeds)
 
@@ -541,21 +628,45 @@ def getViewEmbeds(dbname,path,root):
     conncurs=createDb(dbname,root)
     conn=conncurs[0]
     cursor=conncurs[1]
+    sql="""SELECT queryID,queryText from query"""
+    cursor.execute(sql)
+    data=cursor.fetchall()
+    queryID=[]
+    query=[]
+    for row in data:
+        queryID.append(row[0])
+        query.append(row[1])
+    views=[0 for i in range(len(queryID))]
+    viewEmbeds=['' for i in range(len(queryID))]
     sql="SELECT q.queryID,MAX(viewCount),embed FROM query q JOIN result r ON q.queryID=r.queryID JOIN video v ON r.queryID=v.queryID GROUP BY q.queryID"
     cursor.execute(sql)
     data=cursor.fetchall()
-    views=[]
-    viewEmbeds=[]
+    queryIDBase=[]
+    viewsBase=[]
+    viewEmbedsBase=[]
     for row in data:
-        views.append(row[1])
-        viewEmbeds.append(row[2])
+        queryIDBase.append(row[0])
+        viewsBase.append(row[1])
+        viewEmbedsBase.append(row[2])
+    for i in range(len(queryID)):
+        for j in range(len(queryIDBase)):
+            if queryID[i]==queryIDBase[j]:
+                views[i]=viewsBase[j]
+                viewEmbeds[i]=viewEmbedsBase[j]
+                break
+    views=[x for x in views if x!=0]
+    viewEmbeds=[x for x in viewEmbeds if x!='']
+    queriesEmbed =[]
+    for i in range(len(queryID)):
+        if queryID[i] in queryIDBase:
+            queriesEmbed.append(query[i])
     conn.close()
-    return(views,viewEmbeds)
+    return(views,viewEmbeds,queriesEmbed)
 
 
 
 
-def htmlGenerator(images,dbname,date,queries,totalVideos,root,totalLikes,
+def htmlGenerator(images,dbname,date,queries,queriesEmbed,totalVideos,root,totalLikes,
                   totalDislikes,totalComments,totalViews,maxLikeEmbeds,maxDislikeEmbeds,
                   maxCommentsEmbeds,maxViewsEmbeds,maxLikes,maxDislikes,maxComments,maxViews,
                   meanLikesViews,meanDislikesViews,likesPerDislikes,lastHalfYear):
@@ -652,42 +763,42 @@ def htmlGenerator(images,dbname,date,queries,totalVideos,root,totalLikes,
                                      <table width="100%" >
                                          <tr align="center">
                                              <td>
-                                                 <img width="432px" height="576px" src="{{ images[0] }}">
+                                                 <img src="{{ images[0] }}">
                                              </td>
                                              <td>
-                                                 <img width="432px" height="576px" src="{{ images[1] }}">
+                                                 <img  src="{{ images[1] }}">
                                              </td>
                                          </tr>
                                          <tr></tr>
                                          <tr align="center">
                                              <td>
-                                                 <img width="432px" height="576px" src="{{ images[2] }}">
+                                                 <img  src="{{ images[2] }}">
                                              </td>
                                              <td>
-                                                 <img width="432px" height="576px" src="{{ images[3] }}">
-                                             </td>
-                                         </tr>
-                                         <tr align="center">
-                                             <td>
-                                                 <img width="432px" height="576px" src="{{ images[4] }}">
-                                             </td>
-                                             <td>
-                                                 <img width="432px" height="576px" src="{{ images[5] }}">
+                                                 <img  src="{{ images[3] }}">
                                              </td>
                                          </tr>
                                          <tr align="center">
                                              <td>
-                                                 <img width="432px" height="576px" src="{{ images[6] }}">
+                                                 <img  src="{{ images[4] }}">
                                              </td>
                                              <td>
-                                                 <img width="432px" height="576px" src="{{ images[7] }}">
+                                                 <img  src="{{ images[5] }}">
+                                             </td>
+                                         </tr>
+                                         <tr align="center">
+                                             <td>
+                                                 <img  src="{{ images[6] }}">
+                                             </td>
+                                             <td>
+                                                 <img  src="{{ images[7] }}">
                                              </td>
                                          </tr>
                                      </table>
                                      </br>
-                                     <p><center><h2>Динамика добавления новых видео за последний год</center></p>
+                                     <p><center><h2>Динамика добавления новых видео за последние 3 года</center></p>
                                      <table width="100%" style="text-align:center">
-                                         {% for i in range(length) %}
+                                         {% for i in range(lengthEmbed) %}
                                          <tr width="100%" >
                                              <td width="100%">
                                                  <img width="864px" height="648px" src="{{ images[i+8] }}">
@@ -697,8 +808,8 @@ def htmlGenerator(images,dbname,date,queries,totalVideos,root,totalLikes,
                                      </table>
                                      </br>
                                      <p><center><h2>Топ-видео категорий</center></p>
-                                     {% for i in range(length) %}
-                                     <center><p style="color:blue">Категория <b>«{{queries[i]}}»</b></p></center>
+                                     {% for i in range(lengthEmbed) %}
+                                     <center><p style="color:blue">Категория <b>«{{queriesEmbed[i]}}»</b></p></center>
                                      <table width="100%">
                                          <tr align="center">
                                              <td>
@@ -727,7 +838,7 @@ def htmlGenerator(images,dbname,date,queries,totalVideos,root,totalLikes,
                              </html>
                              """)
     with open(root+dbname.replace('.db','')+".html", "w") as file:
-        file.write(template.render(length=len(queries),dbname=dbname,images=images,date=date,queries=queries,totalVideos=totalVideos,totalLikes=totalLikes,totalDislikes=totalDislikes,totalComments=totalComments,totalViews=totalViews,
+        file.write(template.render(length=len(queries),lengthEmbed=len(queriesEmbed),queriesEmbed=queriesEmbed,dbname=dbname,images=images,date=date,queries=queries,totalVideos=totalVideos,totalLikes=totalLikes,totalDislikes=totalDislikes,totalComments=totalComments,totalViews=totalViews,
                                    maxLikeEmbeds=maxLikeEmbeds,maxDislikeEmbeds=maxDislikeEmbeds,maxCommentsEmbeds=maxCommentsEmbeds,maxViewsEmbeds=maxViewsEmbeds,
                                    maxLikes=maxLikes,maxDislikes=maxDislikes,maxComments=maxComments,maxViews=maxViews,
                                    meanLikesViews=meanLikesViews,meanDislikesViews=meanDislikesViews,likesPerDislikes=likesPerDislikes,lastHalfYear=lastHalfYear))

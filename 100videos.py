@@ -9,7 +9,9 @@ DEVELOPER_KEYS=["AIzaSyDJR3-A7UnPK6ZVPmYPvUfc35iEjb9TqFk",   #Я
                 "AIzaSyDPs5drcMfvcRrqqkUrhPgnI647438WsdY",   #Я
                 "AIzaSyA506GzoveUGAvXUib6Y8KTXAJxa4XMdLA",   #Костя
                 "AIzaSyD-o3TMJ0nD--tmSmKp3t1-r88mI6Bc72c",   #Я
-                "AIzaSyCzKUiwJ7WbbsQqJD7H_QAWNaUB0zzPcoA"]   #Я
+                "AIzaSyCzKUiwJ7WbbsQqJD7H_QAWNaUB0zzPcoA",   #Я
+                "AIzaSyBD8tXjVqTDIvcG98zkvs44HS3xWIf_0io",   #Костя
+                "AIzaSyCRHip38suqZie3s6VarjMzTdmSK6E6pDQ"]   #Костя
 YOUTUBE_API_SERVICE_NAME = "youtube"
 YOUTUBE_API_VERSION = "v3"
 
@@ -64,8 +66,11 @@ def youtube_study_analytics():
         #выцепляем общее кол-во видео по даннной тематике
         totalVideos[query]=results['pageInfo']['totalResults']
         
-        #получаем токен следующей страницы поиска
-        nextPageToken=results['nextPageToken']
+        #получаем токен следующей страницы поиска, если она существует
+        if 'nextPageToken' in results:
+            nextPageToken=results['nextPageToken']
+        else:
+            nextPageToken='null'
         #первичная инициализация четырех статистических переменных
         likes,dislikes,comments,views=[0 for y in range(4)]
         
@@ -111,24 +116,26 @@ def youtube_study_analytics():
                         c=int(videoResult['statistics']['commentCount'])
                         comments=comments+c
                     v=int(videoResult['statistics']['viewCount'])
-                    if v==0 or v==None:
-                        views=views+1
-                    else:
-                        views=views+v
+#                    if v==0 or v==None:
+#                        views=views+1
+#                    else:
+#                        views=views+v
+                    views=views+v
                 #вносим изменения в таблицу, коммитим
                 cursor.execute("INSERT INTO video VALUES (?,?,?,?,?,?,?,?,?)",(url,embed,t,l,d,c,v,date,i+1))
                 conn.commit()
                 
             
             
-            #читаем следующую страницу поиска
-            for j in range(len(DEVELOPER_KEYS)):
-                try:
-                    youtube = discovery.build(YOUTUBE_API_SERVICE_NAME, YOUTUBE_API_VERSION, developerKey = DEVELOPER_KEYS[j]) 
-                    results=youtube.search().list(q = query, part = "id, snippet", pageToken=nextPageToken, maxResults = 50, order="date").execute()
-                    break
-                except:
-                    continue
+            #читаем следующую страницу поиска, если она существует
+            if nextPageToken!='null':
+                for j in range(len(DEVELOPER_KEYS)):
+                    try:
+                        youtube = discovery.build(YOUTUBE_API_SERVICE_NAME, YOUTUBE_API_VERSION, developerKey = DEVELOPER_KEYS[j]) 
+                        results=youtube.search().list(q = query, part = "id, snippet", pageToken=nextPageToken, maxResults = 50, order="date").execute()
+                        break
+                    except:
+                        continue
             '''if 'nextPageToken' in results:
                 nextPageToken=results['nextPageToken']
             else:
@@ -163,6 +170,7 @@ def youtube_study_analytics():
     maxView=ys.getViewEmbeds(dbname,path,root)
     maxViews=maxView[0]
     maxViewsEmbeds=maxView[1]
+    queriesEmbed=maxView[2]
     
     #images=[path+'\\1.png',path+'\\2.png',path+'\\3.png',path+'\\4.png',
             #path+'\\5.png',path+'\\6.png',path+'\\7.png',path+'\\8.png']
@@ -200,7 +208,7 @@ def youtube_study_analytics():
     lastHalfYear=ys.getLastHalfYear(dbname,root)
     
     #генерируем html-страничку
-    ys.htmlGenerator(images,dbname,date,queries,list(totalVideos.values()),root,
+    ys.htmlGenerator(images,dbname,date,queries,queriesEmbed,list(totalVideos.values()),root,
                      list(totalLikes.values()),list(totalDislikes.values()),list(totalComments.values()),
                      list(totalViews.values()),maxLikeEmbeds,maxDislikeEmbeds,maxCommentsEmbeds,maxViewsEmbeds,
                      maxLikes,maxDislikes,maxComments,maxViews,meanLikesViews,meanDislikesViews,likesPerDislikes,
