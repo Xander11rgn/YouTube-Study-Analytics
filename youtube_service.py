@@ -809,7 +809,7 @@ def htmlGenerator(images,dbname,date,queries,queriesEmbed,totalVideos,root,total
                                      </br>
                                      <p><center><h2>Топ-видео категорий</center></p>
                                      {% for i in range(lengthEmbed) %}
-                                     <center><p style="color:blue">Категория <b>«{{queriesEmbed[i]}}»</b></p></center>
+                                     <h3><center><p style="color:blue">Категория <b>«{{queriesEmbed[i]}}»</b></p></center></h3>
                                      <table width="100%">
                                          <tr align="center">
                                              <td>
