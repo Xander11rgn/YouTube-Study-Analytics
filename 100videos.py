@@ -1,8 +1,9 @@
-#import apiclient as api
+﻿#import apiclient as api
 from googleapiclient import discovery
 import sys
 import youtube_service as ys
 import os
+
 
 DEVELOPER_KEYS=["AIzaSyDJR3-A7UnPK6ZVPmYPvUfc35iEjb9TqFk",   #Я
                 "AIzaSyBCNojrr4-HL23k0sGMMg7OhlDFOZvyTX4",   #Костя
@@ -24,6 +25,7 @@ path=os.path.abspath(os.curdir)+'\\'+dbname.replace('.db','')+'\\images'
 root=os.path.abspath(os.curdir)+'\\'+dbname.replace('.db','')+'\\'
 os.mkdir(path)
 
+
 #создаем новое подключение к БД и получаем курсор для работы с ней
 conncurs=ys.createDb(dbname,root)
 conn=conncurs[0]
@@ -31,6 +33,8 @@ cursor=conncurs[1]
 
 #заполняем БД
 ys.fullfillDb(cursor,conn)
+
+sys.path
 
 #начинаем вывод импровизированного прогрессбара
 sys.stdout.write("Сбор и анализ данных [ %d"%0+"% ] ")
@@ -45,8 +49,8 @@ def youtube_study_analytics():
     
     #построчно читаем запросы из файла
     #здесь кстати можно будет замутить выбор файла пользователем путем ввода его имени
-    queries=ys.getQueriesFromFile('test.txt')
-    
+
+    queries=ys.getQueriesFromFile(sys.argv[1])
     #общий главный цикл
     for i in range(len(queries)):
         query=queries[i]
@@ -59,6 +63,7 @@ def youtube_study_analytics():
                 try:
                     youtube = discovery.build(YOUTUBE_API_SERVICE_NAME, YOUTUBE_API_VERSION, developerKey = DEVELOPER_KEYS[h]) 
                     results = youtube.search().list(q = query, part = "id, snippet", maxResults = 50, order="date").execute()
+#                    print(results)
                     break;
                 except:
                     continue
@@ -175,7 +180,7 @@ def youtube_study_analytics():
     #images=[path+'\\1.png',path+'\\2.png',path+'\\3.png',path+'\\4.png',
             #path+'\\5.png',path+'\\6.png',path+'\\7.png',path+'\\8.png']
     images=[]
-    for i in range(len(queries)+9):
+    for i in range(len(queries)*2+8):
         images.append(path+'\\'+str(i+1)+'.png')
     
     #генерируем кучу графиков и сохраняем их в папку images
@@ -197,6 +202,8 @@ def youtube_study_analytics():
     
     ys.videosPerLastYearDia(dbname,path,root)
     
+    ys.queryTrendsDia(queries,path)
+    
     date=ys.dateConverter(dbname)
     
     meanLikesViews=ys.getLikesPerViews(dbname,root)
@@ -206,6 +213,7 @@ def youtube_study_analytics():
     likesPerDislikes=ys.getLikesPerDislikes(dbname,root)
     
     lastHalfYear=ys.getLastHalfYear(dbname,root)
+    
     
     #генерируем html-страничку
     ys.htmlGenerator(images,dbname,date,queries,queriesEmbed,list(totalVideos.values()),root,
