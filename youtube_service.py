@@ -1,10 +1,12 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 import re
 import datetime
 import sqlite3
 import pandas as pd
-import matplotlib.pyplot as plt,matplotlib.ticker
+import matplotlib.pyplot as plt, matplotlib.ticker
 import jinja2
+from pytrends.request import TrendReq
+
 
 
 #меняем английское название дня недели на русское
@@ -60,7 +62,7 @@ def fullfillDb(cursor,conn):
 #считываем запросы из файла
 def getQueriesFromFile(filename):
     queries=[]
-    file=open(filename,'r')
+    file=open(filename,'r', encoding='cp1251')
     for line in file:
         if line!=None and line!='' and line!='\n':
             queries.append(line)
@@ -394,6 +396,28 @@ def lastHalfYearDia(dbname,path,root):
     plt.savefig(path+'\\8.png',bbox_inches='tight')
     conn.close()
 
+def queryTrendsDia(queryTrends,path):
+
+    for i in range(len(queryTrends)):
+        pytrends = TrendReq()
+        tempQuery=[]
+        tempQuery.append(queryTrends[i])
+        pytrends.build_payload(tempQuery, cat=0, timeframe='all', geo='RU', gprop='')
+        df = pytrends.interest_over_time()
+        print(df)
+        if df.empty:
+            df = pd.DataFrame()
+            df['X'] = [0]
+            df['Y'] = [0]
+            ax = df.plot(title='Популярность запроса "' + queryTrends[i] + '" (данные не были получены!)', legend=True, figsize=(12, 8))
+            ax.set(xlabel="X", ylabel="Y")
+            plt.savefig(path + '\\' + str(i + len(queryTrends) + 9) + '.png', bbox_inches='tight')
+        else:
+            ax=df.plot(title='Популярность запроса "' + queryTrends[i]+'"',legend=True,figsize=(12, 8))
+            ax.set(xlabel="Года", ylabel="Количество запросов")
+            plt.savefig(path+'\\'+str(i+len(queryTrends)+9)+'.png',bbox_inches='tight')
+
+
 #по полугодиям за последние 3 года
 def videosPerLastYearDia(dbname,path,root):
     conncurs=createDb(dbname,root)
@@ -405,12 +429,12 @@ def videosPerLastYearDia(dbname,path,root):
     query=[]
     for row in data:
         query.append(row[0])
-    
+
     curMonth=datetime.datetime.now().month
-    
+
     pg=['1\n\n'+str(datetime.datetime.now().year-3)+' год','2','3','4','5','6\n\n'+str(datetime.datetime.now().year)+' год']
-    
-    
+
+
     n=0
     for i in range(len(query)):
         videos=[0 for i in range(6)]
@@ -456,27 +480,27 @@ def videosPerLastYearDia(dbname,path,root):
 #    query=[]
 #    for row in data:
 #        query.append(row[0])
-#    
+#
 #    monthsMain={'1':'Январь','2':'Февраль','3':'Март','4':'Апрель','5':'Май','6':'Июнь','7':'Июль','8':'Август',
 #            '9':'Сентябрь','10':'Октябрь','11':'Ноябрь','12':'Декабрь'}
 #    monthIndexes=[0,1,2,3,4,5,6,7,8,9,10,11]
-#    
+#
 #    curMonth=datetime.datetime.now().month
 #    months=[]
 #    for i in range(curMonth,13):
 #        months.append(monthsMain[str(i)])
-#    
+#
 #    for i in range(1,curMonth):
 #        months.append(monthsMain[str(i)])
-#    
+#
 #    months[0]=months[0]+'\n\n'+str(datetime.datetime.now().year-1)+' год'
 #    if datetime.datetime.now().month==1:
 #        months[11]=months[11]+'\n\n'+str(datetime.datetime.now().year-1)+' год'
 #    else:
 #        months[11]=months[11]+'\n\n'+str(datetime.datetime.now().year)+' год'
-#    
+#
 #    for i in range(len(query)):
-#        sql="""SELECT date(v.date) from query q JOIN video v ON q.queryID=v.queryID 
+#        sql="""SELECT date(v.date) from query q JOIN video v ON q.queryID=v.queryID
 #        WHERE v.date>=date('now','-3 year','+1 day') AND queryText='"""+query[i]+"""'"""
 #        cursor.execute(sql)
 #        data=cursor.fetchall()
@@ -508,7 +532,7 @@ def videosPerLastYearDia(dbname,path,root):
 #генерируем красивое понятное отображение даты для дальнейшего отображения в отчете
 def dateConverter(dbname):
     days={'Понедельник':'понедельник','Вторник':'вторник','Среда':'среду',
-      'Четверг':'четверг','Пятница':'пятницу','Суббота':'субботу','Воскресенье':'воскресенье'}
+          'Четверг':'четверг','Пятница':'пятницу','Суббота':'субботу','Воскресенье':'воскресенье'}
     pattern=r'(^[а-яА-Я]+)'
     dayOfWeek=re.search(pattern,dbname).group(0)
     months={'1':'января','2':'февраля','3':'марта','4':'апреля','5':'мая','6':'июня','7':'июля','8':'августа','9':'сентября',
@@ -666,6 +690,10 @@ def getViewEmbeds(dbname,path,root):
 
 
 
+
+
+
+
 def htmlGenerator(images,dbname,date,queries,queriesEmbed,totalVideos,root,totalLikes,
                   totalDislikes,totalComments,totalViews,maxLikeEmbeds,maxDislikeEmbeds,
                   maxCommentsEmbeds,maxViewsEmbeds,maxLikes,maxDislikes,maxComments,maxViews,
@@ -763,35 +791,35 @@ def htmlGenerator(images,dbname,date,queries,queriesEmbed,totalVideos,root,total
                                      <table width="100%" >
                                          <tr align="center">
                                              <td>
-                                                 <img src="{{ images[0] }}">
+                                                 <img style="max-width:100%; height:auto;" src="{{ images[0] }}">
                                              </td>
                                              <td>
-                                                 <img  src="{{ images[1] }}">
+                                                 <img style="max-width:100%; height:auto;" src="{{ images[1] }}">
                                              </td>
                                          </tr>
                                          <tr></tr>
                                          <tr align="center">
                                              <td>
-                                                 <img  src="{{ images[2] }}">
+                                                 <img style="max-width:100%; height:auto;" src="{{ images[2] }}">
                                              </td>
                                              <td>
-                                                 <img  src="{{ images[3] }}">
-                                             </td>
-                                         </tr>
-                                         <tr align="center">
-                                             <td>
-                                                 <img  src="{{ images[4] }}">
-                                             </td>
-                                             <td>
-                                                 <img  src="{{ images[5] }}">
+                                                 <img style="max-width:100%; height:auto;" src="{{ images[3] }}">
                                              </td>
                                          </tr>
                                          <tr align="center">
                                              <td>
-                                                 <img  src="{{ images[6] }}">
+                                                 <img style="max-width:100%; height:auto;" src="{{ images[4] }}">
                                              </td>
                                              <td>
-                                                 <img  src="{{ images[7] }}">
+                                                 <img style="max-width:100%; height:auto;" src="{{ images[5] }}">
+                                             </td>
+                                         </tr>
+                                         <tr align="center">
+                                             <td>
+                                                 <img style="max-width:100%; height:auto;" src="{{ images[6] }}">
+                                             </td>
+                                             <td>
+                                                 <img style="max-width:100%; height:auto;" src="{{ images[7] }}">
                                              </td>
                                          </tr>
                                      </table>
@@ -801,12 +829,25 @@ def htmlGenerator(images,dbname,date,queries,queriesEmbed,totalVideos,root,total
                                          {% for i in range(lengthEmbed) %}
                                          <tr width="100%" >
                                              <td width="100%">
-                                                 <img width="864px" height="648px" src="{{ images[i+8] }}">
+                                                 <img style="max-width:100%; height:auto;" src="{{ images[i+8] }}">
                                              </td>
                                          </tr>
                                          {% endfor %}
                                      </table>
                                      </br>
+                                     
+                                     <p><center><h2>Популярность запросов согласно Google Trends</center></p>
+                                     <table width="100%" style="text-align:center">
+                                         {% for i in range(lengthEmbed) %}
+                                         <tr width="100%" >
+                                             <td width="100%">
+                                                 <img style="max-width:100%; height:auto;" src="{{ images[i+8+lengthEmbed] }}">
+                                             </td>
+                                         </tr>
+                                         {% endfor %}
+                                     </table>
+                                     </br>
+                                     
                                      <p><center><h2>Топ-видео категорий</center></p>
                                      {% for i in range(lengthEmbed) %}
                                      <center><p style="color:blue">Категория <b>«{{queriesEmbed[i]}}»</b></p></center>
@@ -842,46 +883,6 @@ def htmlGenerator(images,dbname,date,queries,queriesEmbed,totalVideos,root,total
                                    maxLikeEmbeds=maxLikeEmbeds,maxDislikeEmbeds=maxDislikeEmbeds,maxCommentsEmbeds=maxCommentsEmbeds,maxViewsEmbeds=maxViewsEmbeds,
                                    maxLikes=maxLikes,maxDislikes=maxDislikes,maxComments=maxComments,maxViews=maxViews,
                                    meanLikesViews=meanLikesViews,meanDislikesViews=meanDislikesViews,likesPerDislikes=likesPerDislikes,lastHalfYear=lastHalfYear))
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
