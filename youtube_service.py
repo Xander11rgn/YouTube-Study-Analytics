@@ -69,7 +69,6 @@ def getQueriesFromFile(filename):
         
     for i in range(len(queries)):
         queries[i]=queries[i].replace('\n','')
-        
     return(queries)
 
 
@@ -404,7 +403,6 @@ def queryTrendsDia(queryTrends,path):
         tempQuery.append(queryTrends[i])
         pytrends.build_payload(tempQuery, cat=0, timeframe='all', geo='RU', gprop='')
         df = pytrends.interest_over_time()
-        print(df)
         if df.empty:
             df = pd.DataFrame()
             df['X'] = [0]
@@ -694,13 +692,110 @@ def getViewEmbeds(dbname,path,root):
 
 
 
-def htmlGenerator(images,dbname,date,queries,queriesEmbed,totalVideos,root,totalLikes,
+def htmlGenerator(images,images1,images2,dbname,date,queries,queriesEmbed,totalVideos,root,totalLikes,
                   totalDislikes,totalComments,totalViews,maxLikeEmbeds,maxDislikeEmbeds,
                   maxCommentsEmbeds,maxViewsEmbeds,maxLikes,maxDislikes,maxComments,maxViews,
                   meanLikesViews,meanDislikesViews,likesPerDislikes,lastHalfYear):
     template=jinja2.Template("""
                              <html>
                                  <head>
+                                 <style>
+    /*!
+     * chiefSlider (https://itchief.ru/lessons/php/feedback-form-for-website)
+     * Copyright 2018 Alexander Maltsev
+     * Licensed under MIT (https://github.com/itchief/feedback-form/blob/master/LICENSE)
+     */
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+      color: #0;
+      height: 300px;
+    }
+
+    .slider {
+      position: relative;
+      overflow: hidden;
+    }
+    .slider1 {
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .slider2 {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .slider__wrapper {
+      display: flex;
+      transition: transform 0.6s ease;
+    }
+
+    .slider__item {
+      flex: 0 0 100%;
+      max-width: 100%;
+    }
+
+    .slider__control {
+      position: absolute;
+      top: 50%;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      color: #fff;
+      text-align: center;
+      opacity: 0.5;
+      height: 50px;
+      transform: translateY(-50%);
+      background: rgba(0, 0, 0, .5);
+    }
+
+    .slider__control_show {
+      display: flex;
+    }
+
+    .slider__control:hover,
+    .slider__control:focus {
+      color: #fff;
+      text-decoration: none;
+      outline: 0;
+      opacity: .9;
+    }
+
+    .slider__control_left {
+      left: 0;
+    }
+
+    .slider__control_right {
+      right: 0;
+    }
+
+    .slider__control::before {
+      content: '';
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      background: transparent no-repeat center center;
+      background-size: 100% 100%;
+    }
+
+    .slider__control_left::before {
+      background-image: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='%23fff' viewBox='0 0 8 8'%3E%3Cpath d='M5.25 0l-4 4 4 4 1.5-1.5-2.5-2.5 2.5-2.5-1.5-1.5z'/%3E%3C/svg%3E");
+    }
+
+    .slider__control_right::before {
+      background-image: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='%23fff' viewBox='0 0 8 8'%3E%3Cpath d='M2.75 0l-1.5 1.5 2.5 2.5-2.5 2.5 1.5 1.5 4-4-4-4z'/%3E%3C/svg%3E");
+    }
+
+    .slider__item>div {
+      line-height: 500px;
+      font-size: 100px;
+      text-align: center;
+    }
+  </style>
+  <link rel="icon" href="../youtube_ico.png" type="image/png">
                                      <title>Отчет - {{dbname.replace('.db','')}}</title>
                                  </head>
                                  <body>
@@ -788,65 +883,44 @@ def htmlGenerator(images,dbname,date,queries,queriesEmbed,totalVideos,root,total
                                      </table>
                                      </br>
                                      <p><center><h2>Графики зависимостей</center></p>
-                                     <table width="100%" >
-                                         <tr align="center">
-                                             <td>
-                                                 <img style="max-width:100%; height:auto;" src="{{ images[0] }}">
-                                             </td>
-                                             <td>
-                                                 <img style="max-width:100%; height:auto;" src="{{ images[1] }}">
-                                             </td>
-                                         </tr>
-                                         <tr></tr>
-                                         <tr align="center">
-                                             <td>
-                                                 <img style="max-width:100%; height:auto;" src="{{ images[2] }}">
-                                             </td>
-                                             <td>
-                                                 <img style="max-width:100%; height:auto;" src="{{ images[3] }}">
-                                             </td>
-                                         </tr>
-                                         <tr align="center">
-                                             <td>
-                                                 <img style="max-width:100%; height:auto;" src="{{ images[4] }}">
-                                             </td>
-                                             <td>
-                                                 <img style="max-width:100%; height:auto;" src="{{ images[5] }}">
-                                             </td>
-                                         </tr>
-                                         <tr align="center">
-                                             <td>
-                                                 <img style="max-width:100%; height:auto;" src="{{ images[6] }}">
-                                             </td>
-                                             <td>
-                                                 <img style="max-width:100%; height:auto;" src="{{ images[7] }}">
-                                             </td>
-                                         </tr>
-                                     </table>
-                                     </br>
+                                     <div class="slider" >
+                                         <div class="slider__wrapper">
+                                             {% for image in images %}
+                                                 <div class="slider__item">
+                                                     <div style="height: auto; background: white;"> <img src="{{ image }}"> </div>
+                                                     </div>
+                                            {% endfor %}
+                                            </div>
+                                            <a class="slider__control slider__control_left" href="#" role="button"></a>
+                                            <a class="slider__control slider__control_right slider__control_show" href="#" role="button"></a>
+                                            </div>
+                                     
                                      <p><center><h2>Динамика добавления новых видео за последние 3 года</center></p>
-                                     <table width="100%" style="text-align:center">
-                                         {% for i in range(lengthEmbed) %}
-                                         <tr width="100%" >
-                                             <td width="100%">
-                                                 <img style="max-width:100%; height:auto;" src="{{ images[i+8] }}">
-                                             </td>
-                                         </tr>
-                                         {% endfor %}
-                                     </table>
-                                     </br>
+                                     <div class="slider1" >
+                                         <div class="slider__wrapper">
+                                             {% for image in images1 %}
+                                                 <div class="slider__item">
+                                                     <div style="height: auto; background: white;"> <img src="{{ image }}"> </div>
+                                                     </div>
+                                            {% endfor %}
+                                            </div>
+                                            <a class="slider__control slider__control_left" href="#" role="button"></a>
+                                            <a class="slider__control slider__control_right slider__control_show" href="#" role="button"></a>
+                                            </div>
+                                     
                                      
                                      <p><center><h2>Популярность запросов согласно Google Trends</center></p>
-                                     <table width="100%" style="text-align:center">
-                                         {% for i in range(lengthEmbed) %}
-                                         <tr width="100%" >
-                                             <td width="100%">
-                                                 <img style="max-width:100%; height:auto;" src="{{ images[i+8+lengthEmbed] }}">
-                                             </td>
-                                         </tr>
-                                         {% endfor %}
-                                     </table>
-                                     </br>
+                                     <div class="slider2" >
+                                         <div class="slider__wrapper">
+                                             {% for image in images2 %}
+                                                 <div class="slider__item">
+                                                     <div style="height: auto; background: white;"> <img src="{{ image }}"> </div>
+                                                     </div>
+                                            {% endfor %}
+                                            </div>
+                                            <a class="slider__control slider__control_left" href="#" role="button"></a>
+                                            <a class="slider__control slider__control_right slider__control_show" href="#" role="button"></a>
+                                            </div>
                                      
                                      <p><center><h2>Топ-видео категорий</center></p>
                                      {% for i in range(lengthEmbed) %}
@@ -876,10 +950,261 @@ def htmlGenerator(images,dbname,date,queries,queriesEmbed,totalVideos,root,total
                                      </br></br>
                                      {% endfor %}
                                  </body>
+                                 <script>
+    'use strict';
+    var multiItemSlider = (function () {
+      return function (selector, config) {
+        var
+          _mainElement = document.querySelector(selector), // основный элемент блока
+          _sliderWrapper = _mainElement.querySelector('.slider__wrapper'), // обертка для .slider-item
+          _sliderItems = _mainElement.querySelectorAll('.slider__item'), // элементы (.slider-item)
+          _sliderControls = _mainElement.querySelectorAll('.slider__control'), // элементы управления
+          _sliderControlLeft = _mainElement.querySelector('.slider__control_left'), // кнопка "LEFT"
+          _sliderControlRight = _mainElement.querySelector('.slider__control_right'), // кнопка "RIGHT"
+          _wrapperWidth = parseFloat(getComputedStyle(_sliderWrapper).width), // ширина обёртки
+          _itemWidth = parseFloat(getComputedStyle(_sliderItems[0]).width), // ширина одного элемента
+          _positionLeftItem = 0, // позиция левого активного элемента
+          _transform = 0, // значение транфсофрмации .slider_wrapper
+          _step = _itemWidth / _wrapperWidth * 100, // величина шага (для трансформации)
+          _items = []; // массив элементов
+        // наполнение массива _items
+        _sliderItems.forEach(function (item, index) {
+          _items.push({ item: item, position: index, transform: 0 });
+        });
+        var position = {
+          getMin: 0,
+          getMax: _items.length - 1,
+        }
+        var _transformItem = function (direction) {
+          if (direction === 'right') {
+            if ((_positionLeftItem + _wrapperWidth / _itemWidth - 1) >= position.getMax) {
+              return;
+            }
+            if (!_sliderControlLeft.classList.contains('slider__control_show')) {
+              _sliderControlLeft.classList.add('slider__control_show');
+            }
+            if (_sliderControlRight.classList.contains('slider__control_show') && (_positionLeftItem + _wrapperWidth / _itemWidth) >= position.getMax) {
+              _sliderControlRight.classList.remove('slider__control_show');
+            }
+            _positionLeftItem++;
+            _transform -= _step;
+          }
+          if (direction === 'left') {
+            if (_positionLeftItem <= position.getMin) {
+              return;
+            }
+            if (!_sliderControlRight.classList.contains('slider__control_show')) {
+              _sliderControlRight.classList.add('slider__control_show');
+            }
+            if (_sliderControlLeft.classList.contains('slider__control_show') && _positionLeftItem - 1 <= position.getMin) {
+              _sliderControlLeft.classList.remove('slider__control_show');
+            }
+            _positionLeftItem--;
+            _transform += _step;
+          }
+          _sliderWrapper.style.transform = 'translateX(' + _transform + '%)';
+        }
+
+        // обработчик события click для кнопок "назад" и "вперед"
+        var _controlClick = function (e) {
+          var direction = this.classList.contains('slider__control_right') ? 'right' : 'left';
+          e.preventDefault();
+          _transformItem(direction);
+        };
+
+        var _setUpListeners = function () {
+          // добавление к кнопкам "назад" и "вперед" обрботчика _controlClick для событя click
+          _sliderControls.forEach(function (item) {
+            item.addEventListener('click', _controlClick);
+          });
+        }
+        // инициализация
+        _setUpListeners();
+
+        return {
+          right: function () { // метод right
+            _transformItem('right');
+          },
+          left: function () { // метод left
+            _transformItem('left');
+          }
+        }
+
+      }
+    }());
+    var slider = multiItemSlider('.slider')
+  </script>
+  <script>
+    'use strict';
+    var multiItemSlider1 = (function () {
+      return function (selector, config) {
+        var
+          _mainElement = document.querySelector(selector), // основный элемент блока
+          _sliderWrapper = _mainElement.querySelector('.slider__wrapper'), // обертка для .slider-item
+          _sliderItems = _mainElement.querySelectorAll('.slider__item'), // элементы (.slider-item)
+          _sliderControls = _mainElement.querySelectorAll('.slider__control'), // элементы управления
+          _sliderControlLeft = _mainElement.querySelector('.slider__control_left'), // кнопка "LEFT"
+          _sliderControlRight = _mainElement.querySelector('.slider__control_right'), // кнопка "RIGHT"
+          _wrapperWidth = parseFloat(getComputedStyle(_sliderWrapper).width), // ширина обёртки
+          _itemWidth = parseFloat(getComputedStyle(_sliderItems[0]).width), // ширина одного элемента
+          _positionLeftItem = 0, // позиция левого активного элемента
+          _transform = 0, // значение транфсофрмации .slider_wrapper
+          _step = _itemWidth / _wrapperWidth * 100, // величина шага (для трансформации)
+          _items = []; // массив элементов
+        // наполнение массива _items
+        _sliderItems.forEach(function (item, index) {
+          _items.push({ item: item, position: index, transform: 0 });
+        });
+        var position = {
+          getMin: 0,
+          getMax: _items.length - 1,
+        }
+        var _transformItem = function (direction) {
+          if (direction === 'right') {
+            if ((_positionLeftItem + _wrapperWidth / _itemWidth - 1) >= position.getMax) {
+              return;
+            }
+            if (!_sliderControlLeft.classList.contains('slider__control_show')) {
+              _sliderControlLeft.classList.add('slider__control_show');
+            }
+            if (_sliderControlRight.classList.contains('slider__control_show') && (_positionLeftItem + _wrapperWidth / _itemWidth) >= position.getMax) {
+              _sliderControlRight.classList.remove('slider__control_show');
+            }
+            _positionLeftItem++;
+            _transform -= _step;
+          }
+          if (direction === 'left') {
+            if (_positionLeftItem <= position.getMin) {
+              return;
+            }
+            if (!_sliderControlRight.classList.contains('slider__control_show')) {
+              _sliderControlRight.classList.add('slider__control_show');
+            }
+            if (_sliderControlLeft.classList.contains('slider__control_show') && _positionLeftItem - 1 <= position.getMin) {
+              _sliderControlLeft.classList.remove('slider__control_show');
+            }
+            _positionLeftItem--;
+            _transform += _step;
+          }
+          _sliderWrapper.style.transform = 'translateX(' + _transform + '%)';
+        }
+
+        // обработчик события click для кнопок "назад" и "вперед"
+        var _controlClick = function (e) {
+          var direction = this.classList.contains('slider__control_right') ? 'right' : 'left';
+          e.preventDefault();
+          _transformItem(direction);
+        };
+
+        var _setUpListeners = function () {
+          // добавление к кнопкам "назад" и "вперед" обрботчика _controlClick для событя click
+          _sliderControls.forEach(function (item) {
+            item.addEventListener('click', _controlClick);
+          });
+        }
+        // инициализация
+        _setUpListeners();
+
+        return {
+          right: function () { // метод right
+            _transformItem('right');
+          },
+          left: function () { // метод left
+            _transformItem('left');
+          }
+        }
+
+      }
+    }());
+    var slider1 = multiItemSlider1('.slider1')
+  </script>
+  <script>
+    'use strict';
+    var multiItemSlider2 = (function () {
+      return function (selector, config) {
+        var
+          _mainElement = document.querySelector(selector), // основный элемент блока
+          _sliderWrapper = _mainElement.querySelector('.slider__wrapper'), // обертка для .slider-item
+          _sliderItems = _mainElement.querySelectorAll('.slider__item'), // элементы (.slider-item)
+          _sliderControls = _mainElement.querySelectorAll('.slider__control'), // элементы управления
+          _sliderControlLeft = _mainElement.querySelector('.slider__control_left'), // кнопка "LEFT"
+          _sliderControlRight = _mainElement.querySelector('.slider__control_right'), // кнопка "RIGHT"
+          _wrapperWidth = parseFloat(getComputedStyle(_sliderWrapper).width), // ширина обёртки
+          _itemWidth = parseFloat(getComputedStyle(_sliderItems[0]).width), // ширина одного элемента
+          _positionLeftItem = 0, // позиция левого активного элемента
+          _transform = 0, // значение транфсофрмации .slider_wrapper
+          _step = _itemWidth / _wrapperWidth * 100, // величина шага (для трансформации)
+          _items = []; // массив элементов
+        // наполнение массива _items
+        _sliderItems.forEach(function (item, index) {
+          _items.push({ item: item, position: index, transform: 0 });
+        });
+        var position = {
+          getMin: 0,
+          getMax: _items.length - 1,
+        }
+        var _transformItem = function (direction) {
+          if (direction === 'right') {
+            if ((_positionLeftItem + _wrapperWidth / _itemWidth - 1) >= position.getMax) {
+              return;
+            }
+            if (!_sliderControlLeft.classList.contains('slider__control_show')) {
+              _sliderControlLeft.classList.add('slider__control_show');
+            }
+            if (_sliderControlRight.classList.contains('slider__control_show') && (_positionLeftItem + _wrapperWidth / _itemWidth) >= position.getMax) {
+              _sliderControlRight.classList.remove('slider__control_show');
+            }
+            _positionLeftItem++;
+            _transform -= _step;
+          }
+          if (direction === 'left') {
+            if (_positionLeftItem <= position.getMin) {
+              return;
+            }
+            if (!_sliderControlRight.classList.contains('slider__control_show')) {
+              _sliderControlRight.classList.add('slider__control_show');
+            }
+            if (_sliderControlLeft.classList.contains('slider__control_show') && _positionLeftItem - 1 <= position.getMin) {
+              _sliderControlLeft.classList.remove('slider__control_show');
+            }
+            _positionLeftItem--;
+            _transform += _step;
+          }
+          _sliderWrapper.style.transform = 'translateX(' + _transform + '%)';
+        }
+
+        // обработчик события click для кнопок "назад" и "вперед"
+        var _controlClick = function (e) {
+          var direction = this.classList.contains('slider__control_right') ? 'right' : 'left';
+          e.preventDefault();
+          _transformItem(direction);
+        };
+
+        var _setUpListeners = function () {
+          // добавление к кнопкам "назад" и "вперед" обрботчика _controlClick для событя click
+          _sliderControls.forEach(function (item) {
+            item.addEventListener('click', _controlClick);
+          });
+        }
+        // инициализация
+        _setUpListeners();
+
+        return {
+          right: function () { // метод right
+            _transformItem('right');
+          },
+          left: function () { // метод left
+            _transformItem('left');
+          }
+        }
+      }
+    }());
+    var slider2 = multiItemSlider2('.slider2')
+  </script>
                              </html>
                              """)
     with open(root+dbname.replace('.db','')+".html", "w") as file:
-        file.write(template.render(length=len(queries),lengthEmbed=len(queriesEmbed),queriesEmbed=queriesEmbed,dbname=dbname,images=images,date=date,queries=queries,totalVideos=totalVideos,totalLikes=totalLikes,totalDislikes=totalDislikes,totalComments=totalComments,totalViews=totalViews,
+        file.write(template.render(length=len(queries),lengthEmbed=len(queriesEmbed),queriesEmbed=queriesEmbed,dbname=dbname,images=images,images1=images1,images2=images2,date=date,queries=queries,totalVideos=totalVideos,totalLikes=totalLikes,totalDislikes=totalDislikes,totalComments=totalComments,totalViews=totalViews,
                                    maxLikeEmbeds=maxLikeEmbeds,maxDislikeEmbeds=maxDislikeEmbeds,maxCommentsEmbeds=maxCommentsEmbeds,maxViewsEmbeds=maxViewsEmbeds,
                                    maxLikes=maxLikes,maxDislikes=maxDislikes,maxComments=maxComments,maxViews=maxViews,
                                    meanLikesViews=meanLikesViews,meanDislikesViews=meanDislikesViews,likesPerDislikes=likesPerDislikes,lastHalfYear=lastHalfYear))

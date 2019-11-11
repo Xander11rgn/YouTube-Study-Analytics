@@ -3,26 +3,31 @@ from googleapiclient import discovery
 import sys
 import youtube_service as ys
 import os
-
+from ctypes import windll
+from shutil import rmtree
 
 DEVELOPER_KEYS=["AIzaSyDJR3-A7UnPK6ZVPmYPvUfc35iEjb9TqFk",   #Я
-                "AIzaSyBCNojrr4-HL23k0sGMMg7OhlDFOZvyTX4",   #Костя
-                "AIzaSyDPs5drcMfvcRrqqkUrhPgnI647438WsdY",   #Я
-                "AIzaSyA506GzoveUGAvXUib6Y8KTXAJxa4XMdLA",   #Костя
-                "AIzaSyD-o3TMJ0nD--tmSmKp3t1-r88mI6Bc72c",   #Я
-                "AIzaSyCzKUiwJ7WbbsQqJD7H_QAWNaUB0zzPcoA",   #Я
-                "AIzaSyBD8tXjVqTDIvcG98zkvs44HS3xWIf_0io",   #Костя
-                "AIzaSyCRHip38suqZie3s6VarjMzTdmSK6E6pDQ"]   #Костя
+                 "AIzaSyBCNojrr4-HL23k0sGMMg7OhlDFOZvyTX4",   #Костя
+                 "AIzaSyDPs5drcMfvcRrqqkUrhPgnI647438WsdY",   #Я
+                 "AIzaSyA506GzoveUGAvXUib6Y8KTXAJxa4XMdLA",   #Костя
+                 "AIzaSyD-o3TMJ0nD--tmSmKp3t1-r88mI6Bc72c",   #Я
+                 "AIzaSyCzKUiwJ7WbbsQqJD7H_QAWNaUB0zzPcoA",   #Я
+                 "AIzaSyBD8tXjVqTDIvcG98zkvs44HS3xWIf_0io",   #Костя
+                 "AIzaSyCRHip38suqZie3s6VarjMzTdmSK6E6pDQ"]   #Костя
 YOUTUBE_API_SERVICE_NAME = "youtube"
 YOUTUBE_API_VERSION = "v3"
+
+#иконка для модального окна квоты
+ICON_EXCLAIM=0x30
 
 #получаем имя БД в формате ДЕНЬ_НЕДЕЛИ_ДД.ММ.ГГГГ_ЧЧ-ММ-СС, с которым потом постоянно работаем
 dbname=ys.getDbName()
 
 #создаем рабочую директорию, в которой создаем еще одну директорию для будущих картинок
-os.mkdir(os.path.abspath(os.curdir)+'\\'+dbname.replace('.db',''))
-path=os.path.abspath(os.curdir)+'\\'+dbname.replace('.db','')+'\\images'
 root=os.path.abspath(os.curdir)+'\\'+dbname.replace('.db','')+'\\'
+path=os.path.abspath(os.curdir)+'\\'+dbname.replace('.db','')+'\\images'
+path1='../'+dbname.replace('.db','')+'/images'
+os.mkdir(os.path.abspath(os.curdir)+'\\'+dbname.replace('.db',''))
 os.mkdir(path)
 
 
@@ -34,11 +39,17 @@ cursor=conncurs[1]
 #заполняем БД
 ys.fullfillDb(cursor,conn)
 
-sys.path
-
 #начинаем вывод импровизированного прогрессбара
 sys.stdout.write("Сбор и анализ данных [ %d"%0+"% ] ")
 sys.stdout.flush()
+
+
+def msgBox():
+    windll.user32.MessageBoxW(0, 'Сбор и анализ данных недоступен, поскольку ежедневная квота YouTube Data API исчерпана. \n'
+                                         'Обнуление квоты произойдёт в 11:00 МСК.',
+                                         'Квота исчерпана', 0 | ICON_EXCLAIM)
+
+
 
 def youtube_study_analytics():
     totalVideos={}
@@ -57,19 +68,32 @@ def youtube_study_analytics():
         #вносим изменения в таблицу, коммитим, вопросы это защита от инъекций
         cursor.execute("INSERT INTO query VALUES (?,?)",(i+1,query))
         conn.commit()
-        
+
+        checkQuota=False
+
         #пробегаемся по АПИ ключам в поисках свободной квоты и выполняем поиск видео по i-ому запросу
         for h in range(len(DEVELOPER_KEYS)):
                 try:
                     youtube = discovery.build(YOUTUBE_API_SERVICE_NAME, YOUTUBE_API_VERSION, developerKey = DEVELOPER_KEYS[h]) 
                     results = youtube.search().list(q = query, part = "id, snippet", maxResults = 50, order="date").execute()
-#                    print(results)
+                    checkQuota=True
+                    # print(results)
                     break;
                 except:
                     continue
-            
+
+        if checkQuota==False:
+            msgBox()
+            conn.close()
+            rmtree(root,ignore_errors=True)
+            return
+        else:
+            checkQuota=False
+
+
+
         #выцепляем общее кол-во видео по даннной тематике
-        totalVideos[query]=results['pageInfo']['totalResults']
+        totalVideos[query] = results['pageInfo']['totalResults']
         
         #получаем токен следующей страницы поиска, если она существует
         if 'nextPageToken' in results:
@@ -96,10 +120,18 @@ def youtube_study_analytics():
                 try:
                     youtube = discovery.build(YOUTUBE_API_SERVICE_NAME, YOUTUBE_API_VERSION, developerKey = DEVELOPER_KEYS[j]) 
                     results=youtube.videos().list(part = "snippet,statistics,player",id=videoIds).execute()
+                    checkQuota=True
                     break
                 except:
                     continue
-            
+
+            if checkQuota == False:
+                msgBox()
+                conn.close()
+                rmtree(root, ignore_errors=True)
+                return
+            else:
+                checkQuota = False
         
             #собираем все необходимые данные по каждому видео данной тематики
             #лайки, дизлайки, комменты, просмотры, название, дату, ссылку, ссылку для вставки на сайт
@@ -138,9 +170,18 @@ def youtube_study_analytics():
                     try:
                         youtube = discovery.build(YOUTUBE_API_SERVICE_NAME, YOUTUBE_API_VERSION, developerKey = DEVELOPER_KEYS[j]) 
                         results=youtube.search().list(q = query, part = "id, snippet", pageToken=nextPageToken, maxResults = 50, order="date").execute()
+                        checkQuota=True
                         break
                     except:
                         continue
+
+                if checkQuota == False:
+                    msgBox()
+                    conn.close()
+                    rmtree(root, ignore_errors=True)
+                    return
+                else:
+                    checkQuota = False
             '''if 'nextPageToken' in results:
                 nextPageToken=results['nextPageToken']
             else:
@@ -161,8 +202,9 @@ def youtube_study_analytics():
         #в конце каждой итерации меняем значение на прогрессбаре
         sys.stdout.write(("\rСбор и анализ данных [ %d"%((i+1)*100/(len(queries)))+"% ] ")+('='*(int((i+1)*10/len(queries)))))
         sys.stdout.flush()
-        
-    
+
+
+
     maxLike=ys.getLikeEmbeds(dbname,path,root)
     maxLikes=maxLike[0]
     maxLikeEmbeds=maxLike[1]
@@ -177,12 +219,17 @@ def youtube_study_analytics():
     maxViewsEmbeds=maxView[1]
     queriesEmbed=maxView[2]
     
-    #images=[path+'\\1.png',path+'\\2.png',path+'\\3.png',path+'\\4.png',
-            #path+'\\5.png',path+'\\6.png',path+'\\7.png',path+'\\8.png']
-    images=[]
-    for i in range(len(queries)*2+8):
-        images.append(path+'\\'+str(i+1)+'.png')
     
+    images=[]
+    for i in range(8):
+        images.append(path1+'/'+str(i+1)+'.png')
+    images1=[]
+    for i in range(8,len(queries)+8):
+        images1.append(path1+'/'+str(i+1)+'.png')
+        images2=[]
+    for i in range(len(queries)+8, len(queries)*2+8):
+        images2.append(path1+'/'+str(i+1)+'.png')
+
     #генерируем кучу графиков и сохраняем их в папку images
     ys.queriesLikesDia(dbname,path,root)
     
@@ -216,7 +263,7 @@ def youtube_study_analytics():
     
     
     #генерируем html-страничку
-    ys.htmlGenerator(images,dbname,date,queries,queriesEmbed,list(totalVideos.values()),root,
+    ys.htmlGenerator(images,images1,images2,dbname,date,queries,queriesEmbed,list(totalVideos.values()),root,
                      list(totalLikes.values()),list(totalDislikes.values()),list(totalComments.values()),
                      list(totalViews.values()),maxLikeEmbeds,maxDislikeEmbeds,maxCommentsEmbeds,maxViewsEmbeds,
                      maxLikes,maxDislikes,maxComments,maxViews,meanLikesViews,meanDislikesViews,likesPerDislikes,
@@ -225,6 +272,6 @@ def youtube_study_analytics():
     conn.close()
     
     print('\nЗавершено')
-    
+
 if __name__ == "__main__":
     youtube_study_analytics()
