@@ -26,7 +26,7 @@ dbname=ys.getDbName()
 #создаем рабочую директорию, в которой создаем еще одну директорию для будущих картинок
 root=os.path.abspath(os.curdir)+'\\'+dbname.replace('.db','')+'\\'
 path=os.path.abspath(os.curdir)+'\\'+dbname.replace('.db','')+'\\images'
-path1='../'+dbname.replace('.db','')+'/images'
+path1='images/'
 os.mkdir(os.path.abspath(os.curdir)+'\\'+dbname.replace('.db',''))
 os.mkdir(path)
 
@@ -61,7 +61,9 @@ def youtube_study_analytics():
     #построчно читаем запросы из файла
     #здесь кстати можно будет замутить выбор файла пользователем путем ввода его имени
 
-    queries=ys.getQueriesFromFile(sys.argv[1])
+    queryFile=sys.argv[1]
+    n=int(sys.argv[2])
+    queries=ys.getQueriesFromFile(queryFile)
     #общий главный цикл
     for i in range(len(queries)):
         query=queries[i]
@@ -100,13 +102,13 @@ def youtube_study_analytics():
             nextPageToken=results['nextPageToken']
         else:
             nextPageToken='null'
+            
         #первичная инициализация четырех статистических переменных
         likes,dislikes,comments,views=[0 for y in range(4)]
         
         #цикл для сбора всех идентификаторов видео
         #и отсеивание лишнего, поскольку в поиске кроме видео есть плейлисты и каналы
-        #for k in range(11):
-        for k in range(2):
+        for k in range(3):
             searchResults=results.get("items", [])
             videoIds=[]
             for result in searchResults:
@@ -170,6 +172,10 @@ def youtube_study_analytics():
                     try:
                         youtube = discovery.build(YOUTUBE_API_SERVICE_NAME, YOUTUBE_API_VERSION, developerKey = DEVELOPER_KEYS[j]) 
                         results=youtube.search().list(q = query, part = "id, snippet", pageToken=nextPageToken, maxResults = 50, order="date").execute()
+                        if 'nextPageToken' in results:
+                            nextPageToken=results['nextPageToken']
+                        else:
+                            nextPageToken='null'
                         checkQuota=True
                         break
                     except:
@@ -182,10 +188,10 @@ def youtube_study_analytics():
                     return
                 else:
                     checkQuota = False
-            '''if 'nextPageToken' in results:
-                nextPageToken=results['nextPageToken']
             else:
-                break'''
+                break
+                
+            
             
         #получаем общее кол-во статистических данных по категории
         totalLikes[query]=likes
@@ -205,16 +211,30 @@ def youtube_study_analytics():
 
 
 
-    maxLike=ys.getLikeEmbeds(dbname,path,root)
+#    maxLike=ys.getLikeEmbeds(dbname,path,root)
+#    maxLikes=maxLike[0]
+#    maxLikeEmbeds=maxLike[1]
+#    maxDislike=ys.getDislikeEmbeds(dbname,path,root)
+#    maxDislikes=maxDislike[0]
+#    maxDislikeEmbeds=maxDislike[1]
+#    maxComment=ys.getCommentEmbeds(dbname,path,root)
+#    maxComments=maxComment[0]
+#    maxCommentsEmbeds=maxComment[1]
+#    maxView=ys.getViewEmbeds(dbname,path,root)
+#    maxViews=maxView[0]
+#    maxViewsEmbeds=maxView[1]
+#    queriesEmbed=maxView[2]
+    
+    maxLike=ys.blabla(dbname,root,n)
     maxLikes=maxLike[0]
     maxLikeEmbeds=maxLike[1]
-    maxDislike=ys.getDislikeEmbeds(dbname,path,root)
+    maxDislike=ys.blabla1(dbname,root,n)
     maxDislikes=maxDislike[0]
     maxDislikeEmbeds=maxDislike[1]
-    maxComment=ys.getCommentEmbeds(dbname,path,root)
+    maxComment=ys.blabla2(dbname,root,n)
     maxComments=maxComment[0]
     maxCommentsEmbeds=maxComment[1]
-    maxView=ys.getViewEmbeds(dbname,path,root)
+    maxView=ys.blabla3(dbname,root,n)
     maxViews=maxView[0]
     maxViewsEmbeds=maxView[1]
     queriesEmbed=maxView[2]
@@ -222,14 +242,15 @@ def youtube_study_analytics():
     
     images=[]
     for i in range(8):
-        images.append(path1+'/'+str(i+1)+'.png')
+        images.append(path1+str(i+1)+'.png')
     images1=[]
     for i in range(8,len(queries)+8):
-        images1.append(path1+'/'+str(i+1)+'.png')
-        images2=[]
+        images1.append(path1+str(i+1)+'.png')
+    images2=[]
     for i in range(len(queries)+8, len(queries)*2+8):
-        images2.append(path1+'/'+str(i+1)+'.png')
+        images2.append(path1+str(i+1)+'.png')
 
+    
     #генерируем кучу графиков и сохраняем их в папку images
     ys.queriesLikesDia(dbname,path,root)
     
@@ -267,7 +288,7 @@ def youtube_study_analytics():
                      list(totalLikes.values()),list(totalDislikes.values()),list(totalComments.values()),
                      list(totalViews.values()),maxLikeEmbeds,maxDislikeEmbeds,maxCommentsEmbeds,maxViewsEmbeds,
                      maxLikes,maxDislikes,maxComments,maxViews,meanLikesViews,meanDislikesViews,likesPerDislikes,
-                     lastHalfYear)
+                     lastHalfYear,n)
     
     conn.close()
     

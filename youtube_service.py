@@ -576,6 +576,30 @@ def getLikeEmbeds(dbname,path,root):
     likesEmbeds=[x for x in likesEmbeds if x!='']
     conn.close()
     return(likes,likesEmbeds)
+    
+def blabla(dbname,root,n):
+    conncurs=createDb(dbname,root)
+    conn=conncurs[0]
+    cursor=conncurs[1]
+    sql="""SELECT queryID from query"""
+    cursor.execute(sql)
+    data=cursor.fetchall()
+    queryID=[]
+    for row in data:
+        queryID.append(row[0])
+    likes=[[] for i in range(len(queryID))]
+    likesEmbeds=[[] for i in range(len(queryID))]
+    for id in queryID:
+        sql="SELECT likeCount, embed FROM query q JOIN result r ON q.queryID=r.queryID JOIN video v ON r.queryID=v.queryID WHERE q.queryID="+str(id)+" ORDER BY likeCount desc LIMIT "+str(n)
+        cursor.execute(sql)
+        data=cursor.fetchall()
+        for row in data:
+           likes[id-1].append(row[0])
+           likesEmbeds[id-1].append(row[1])
+#    likes=[x for x in likes if x!=0]
+#    likesEmbeds=[x for x in likesEmbeds if x!='']
+    conn.close()
+    return(likes,likesEmbeds)
 
 
 def getDislikeEmbeds(dbname,path,root):
@@ -610,6 +634,30 @@ def getDislikeEmbeds(dbname,path,root):
     dislikesEmbeds=[x for x in dislikesEmbeds if x!='']
     conn.close()
     return(dislikes,dislikesEmbeds)
+    
+def blabla1(dbname,root,n):
+    conncurs=createDb(dbname,root)
+    conn=conncurs[0]
+    cursor=conncurs[1]
+    sql="""SELECT queryID from query"""
+    cursor.execute(sql)
+    data=cursor.fetchall()
+    queryID=[]
+    for row in data:
+        queryID.append(row[0])
+    dislikes=[[] for i in range(len(queryID))]
+    dislikesEmbeds=[[] for i in range(len(queryID))]
+    for id in queryID:
+        sql="SELECT dislikeCount, embed FROM query q JOIN result r ON q.queryID=r.queryID JOIN video v ON r.queryID=v.queryID WHERE q.queryID="+str(id)+" ORDER BY dislikeCount desc LIMIT "+str(n)
+        cursor.execute(sql)
+        data=cursor.fetchall()
+        for row in data:
+           dislikes[id-1].append(row[0])
+           dislikesEmbeds[id-1].append(row[1])
+#    likes=[x for x in likes if x!=0]
+#    likesEmbeds=[x for x in likesEmbeds if x!='']
+    conn.close()
+    return(dislikes,dislikesEmbeds)    
 
 
 def getCommentEmbeds(dbname,path,root):
@@ -644,6 +692,31 @@ def getCommentEmbeds(dbname,path,root):
     commentEmbeds=[x for x in commentEmbeds if x!='']
     conn.close()
     return(comments,commentEmbeds)
+    
+    
+def blabla2(dbname,root,n):
+    conncurs=createDb(dbname,root)
+    conn=conncurs[0]
+    cursor=conncurs[1]
+    sql="""SELECT queryID from query"""
+    cursor.execute(sql)
+    data=cursor.fetchall()
+    queryID=[]
+    for row in data:
+        queryID.append(row[0])
+    comments=[[] for i in range(len(queryID))]
+    commentEmbeds=[[] for i in range(len(queryID))]
+    for id in queryID:
+        sql="SELECT commentCount, embed FROM query q JOIN result r ON q.queryID=r.queryID JOIN video v ON r.queryID=v.queryID WHERE q.queryID="+str(id)+" ORDER BY commentCount desc LIMIT "+str(n)
+        cursor.execute(sql)
+        data=cursor.fetchall()
+        for row in data:
+           comments[id-1].append(row[0])
+           commentEmbeds[id-1].append(row[1])
+#    likes=[x for x in likes if x!=0]
+#    likesEmbeds=[x for x in likesEmbeds if x!='']
+    conn.close()
+    return(comments,commentEmbeds)  
 
 
 def getViewEmbeds(dbname,path,root):
@@ -687,7 +760,31 @@ def getViewEmbeds(dbname,path,root):
 
 
 
-
+def blabla3(dbname,root,n):
+    conncurs=createDb(dbname,root)
+    conn=conncurs[0]
+    cursor=conncurs[1]
+    sql="""SELECT queryID,queryText from query"""
+    cursor.execute(sql)
+    data=cursor.fetchall()
+    queryID=[]
+    query=[]
+    for row in data:
+        queryID.append(row[0])
+        query.append(row[1])
+    views=[[] for i in range(len(queryID))]
+    viewEmbeds=[[] for i in range(len(queryID))]
+    for id in queryID:
+        sql="SELECT viewCount, embed FROM query q JOIN result r ON q.queryID=r.queryID JOIN video v ON r.queryID=v.queryID WHERE q.queryID="+str(id)+" ORDER BY viewCount desc LIMIT "+str(n)
+        cursor.execute(sql)
+        data=cursor.fetchall()
+        for row in data:
+           views[id-1].append(row[0])
+           viewEmbeds[id-1].append(row[1])
+#    likes=[x for x in likes if x!=0]
+#    likesEmbeds=[x for x in likesEmbeds if x!='']
+    conn.close()
+    return(views,viewEmbeds,query)  
 
 
 
@@ -695,7 +792,7 @@ def getViewEmbeds(dbname,path,root):
 def htmlGenerator(images,images1,images2,dbname,date,queries,queriesEmbed,totalVideos,root,totalLikes,
                   totalDislikes,totalComments,totalViews,maxLikeEmbeds,maxDislikeEmbeds,
                   maxCommentsEmbeds,maxViewsEmbeds,maxLikes,maxDislikes,maxComments,maxViews,
-                  meanLikesViews,meanDislikesViews,likesPerDislikes,lastHalfYear):
+                  meanLikesViews,meanDislikesViews,likesPerDislikes,lastHalfYear,n):
     template=jinja2.Template("""
                              <html>
                                  <head>
@@ -726,6 +823,13 @@ def htmlGenerator(images,images1,images2,dbname,date,queries,queriesEmbed,totalV
       position: relative;
       overflow: hidden;
     }
+    {% for i in range(length) %}
+        .slider{{i+3}} {
+      position: relative;
+      overflow: hidden;
+    }
+        
+    {% endfor %}
 
     .slider__wrapper {
       display: flex;
@@ -922,32 +1026,46 @@ def htmlGenerator(images,images1,images2,dbname,date,queries,queriesEmbed,totalV
                                             <a class="slider__control slider__control_right slider__control_show" href="#" role="button"></a>
                                             </div>
                                      
-                                     <p><center><h2>Топ-видео категорий</center></p>
+                                     <p><center><h2>Топ-{{n}} видео категорий</center></p>
+                                     
                                      {% for i in range(lengthEmbed) %}
-                                     <h3><center><p style="color:blue">Категория <b>«{{queriesEmbed[i]}}»</b></p></center></h3>
-                                     <table width="100%">
-                                         <tr align="center">
-                                             <td>
-                                                 <center>Максимум лайков ({{maxLikes[i]}})</center>
-                                                 {{ maxLikeEmbeds[i] }}
-                                             </td>
-                                             <td>
-                                                 <center>Максимум дизлайков ({{maxDislikes[i]}})</center>
-                                                 {{ maxDislikeEmbeds[i] }}
-                                             </td>
-                                         </tr>
-                                         <tr align="center">
-                                             <td>
-                                                 </br><center>Максимум комментариев ({{maxComments[i]}})</center>
-                                                 {{ maxCommentsEmbeds[i] }}
-                                             </td>
-                                             <td>
-                                                 </br><center>Максимум просмотров ({{maxViews[i]}})</center>
-                                                 {{ maxViewsEmbeds[i] }}
-                                             </td>
-                                         </tr>
-                                     </table>
-                                     </br></br>
+                                         <h3><center><p style="color:blue">Категория <b>«{{queriesEmbed[i]}}»</b></p></center></h3>
+                                         <div class="slider{{i+3}}" >
+                                         <div class="slider__wrapper">
+                                         {% for j in range(n) %}
+                                         
+                                         
+                                         <div class="slider__item">
+                                             <h3><center><p style="color:green">{{j+1}}-e место</p></center></h3>
+                                             <table width="100%">
+                                                 <tr align="center">
+                                                     <td>
+                                                         <center><b>Максимум лайков ({{maxLikes[i][j]}})</b></center>
+                                                         {{ maxLikeEmbeds[i][j] }}
+                                                     </td>
+                                                     <td>
+                                                         <center><b>Максимум дизлайков ({{maxDislikes[i][j]}})</b></center>
+                                                         {{ maxDislikeEmbeds[i][j] }}
+                                                     </td>
+                                                 </tr>
+                                                 <tr align="center">
+                                                     <td>
+                                                         </br><center><b>Максимум комментариев ({{maxComments[i][j]}})</b></center>
+                                                         {{ maxCommentsEmbeds[i][j] }}
+                                                     </td>
+                                                     <td>
+                                                         </br><center><b>Максимум просмотров ({{maxViews[i][j]}})</b></center>
+                                                         {{ maxViewsEmbeds[i][j] }}
+                                                     </td>
+                                                 </tr>
+                                             </table>
+                                             </br></br>
+                                             </div>
+                                         {% endfor %}
+                                         </div>
+                                            <a class="slider__control slider__control_left" href="#" role="button"></a>
+                                            <a class="slider__control slider__control_right slider__control_show" href="#" role="button"></a>
+                                         </div>
                                      {% endfor %}
                                  </body>
                                  <script>
@@ -1201,13 +1319,99 @@ def htmlGenerator(images,images1,images2,dbname,date,queries,queriesEmbed,totalV
     }());
     var slider2 = multiItemSlider2('.slider2')
   </script>
+  
+  {% for i in range(length) %}
+      <script>
+    'use strict';
+    var multiItemSlider{{i+3}} = (function () {
+      return function (selector, config) {
+        var
+          _mainElement = document.querySelector(selector), // основный элемент блока
+          _sliderWrapper = _mainElement.querySelector('.slider__wrapper'), // обертка для .slider-item
+          _sliderItems = _mainElement.querySelectorAll('.slider__item'), // элементы (.slider-item)
+          _sliderControls = _mainElement.querySelectorAll('.slider__control'), // элементы управления
+          _sliderControlLeft = _mainElement.querySelector('.slider__control_left'), // кнопка "LEFT"
+          _sliderControlRight = _mainElement.querySelector('.slider__control_right'), // кнопка "RIGHT"
+          _wrapperWidth = parseFloat(getComputedStyle(_sliderWrapper).width), // ширина обёртки
+          _itemWidth = parseFloat(getComputedStyle(_sliderItems[0]).width), // ширина одного элемента
+          _positionLeftItem = 0, // позиция левого активного элемента
+          _transform = 0, // значение транфсофрмации .slider_wrapper
+          _step = _itemWidth / _wrapperWidth * 100, // величина шага (для трансформации)
+          _items = []; // массив элементов
+        // наполнение массива _items
+        _sliderItems.forEach(function (item, index) {
+          _items.push({ item: item, position: index, transform: 0 });
+        });
+        var position = {
+          getMin: 0,
+          getMax: _items.length - 1,
+        }
+        var _transformItem = function (direction) {
+          if (direction === 'right') {
+            if ((_positionLeftItem + _wrapperWidth / _itemWidth - 1) >= position.getMax) {
+              return;
+            }
+            if (!_sliderControlLeft.classList.contains('slider__control_show')) {
+              _sliderControlLeft.classList.add('slider__control_show');
+            }
+            if (_sliderControlRight.classList.contains('slider__control_show') && (_positionLeftItem + _wrapperWidth / _itemWidth) >= position.getMax) {
+              _sliderControlRight.classList.remove('slider__control_show');
+            }
+            _positionLeftItem++;
+            _transform -= _step;
+          }
+          if (direction === 'left') {
+            if (_positionLeftItem <= position.getMin) {
+              return;
+            }
+            if (!_sliderControlRight.classList.contains('slider__control_show')) {
+              _sliderControlRight.classList.add('slider__control_show');
+            }
+            if (_sliderControlLeft.classList.contains('slider__control_show') && _positionLeftItem - 1 <= position.getMin) {
+              _sliderControlLeft.classList.remove('slider__control_show');
+            }
+            _positionLeftItem--;
+            _transform += _step;
+          }
+          _sliderWrapper.style.transform = 'translateX(' + _transform + '%)';
+        }
+
+        // обработчик события click для кнопок "назад" и "вперед"
+        var _controlClick = function (e) {
+          var direction = this.classList.contains('slider__control_right') ? 'right' : 'left';
+          e.preventDefault();
+          _transformItem(direction);
+        };
+
+        var _setUpListeners = function () {
+          // добавление к кнопкам "назад" и "вперед" обрботчика _controlClick для событя click
+          _sliderControls.forEach(function (item) {
+            item.addEventListener('click', _controlClick);
+          });
+        }
+        // инициализация
+        _setUpListeners();
+
+        return {
+          right: function () { // метод right
+            _transformItem('right');
+          },
+          left: function () { // метод left
+            _transformItem('left');
+          }
+        }
+      }
+    }());
+    var slider{{i+3}} = multiItemSlider{{i+3}}('.slider{{i+3}}')
+  </script>
+  {% endfor %}
                              </html>
                              """)
     with open(root+dbname.replace('.db','')+".html", "w") as file:
         file.write(template.render(length=len(queries),lengthEmbed=len(queriesEmbed),queriesEmbed=queriesEmbed,dbname=dbname,images=images,images1=images1,images2=images2,date=date,queries=queries,totalVideos=totalVideos,totalLikes=totalLikes,totalDislikes=totalDislikes,totalComments=totalComments,totalViews=totalViews,
                                    maxLikeEmbeds=maxLikeEmbeds,maxDislikeEmbeds=maxDislikeEmbeds,maxCommentsEmbeds=maxCommentsEmbeds,maxViewsEmbeds=maxViewsEmbeds,
                                    maxLikes=maxLikes,maxDislikes=maxDislikes,maxComments=maxComments,maxViews=maxViews,
-                                   meanLikesViews=meanLikesViews,meanDislikesViews=meanDislikesViews,likesPerDislikes=likesPerDislikes,lastHalfYear=lastHalfYear))
+                                   meanLikesViews=meanLikesViews,meanDislikesViews=meanDislikesViews,likesPerDislikes=likesPerDislikes,lastHalfYear=lastHalfYear,n=n))
 
 
 
